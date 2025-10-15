@@ -65,6 +65,12 @@ class Vulnerability(Base):
     # Priority score (computed)
     priority_score = Column(Float, nullable=True, index=True)
     
+    # LLM-generated fields (plain-language summaries)
+    simple_title = Column(String(200), nullable=True)  # User-friendly title
+    simple_description = Column(Text, nullable=True)  # Plain-language description
+    llm_processed = Column(Boolean, default=False, nullable=False)  # Whether LLM processing was done
+    llm_processed_at = Column(DateTime(timezone=True), nullable=True)  # When LLM processing occurred
+    
     # Metadata
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

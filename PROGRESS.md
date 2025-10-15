@@ -225,7 +225,17 @@ OpenThreat/
 - [x] API with search and filtering
 - [x] Frontend dashboard with KPIs and real-time data
 
-### Remaining ⏳
+
+### To Do
+- [x] Local LLM which processes CVEs and creates plain-language summaries ✅
+  - ✅ Ollama integration with Llama 3.2
+  - ✅ Simple title generation (< 10 words)
+  - ✅ Simple description generation (2-3 sentences)
+  - ✅ Database fields for LLM-generated content
+  - ✅ CLI tool for batch processing
+  - ✅ Fallback to original content if LLM unavailable
+
+### Optional
 - [ ] Localization (German/English)
 - [ ] Rate limiting for API
 - [ ] Deployment guide (Docker, Kubernetes)

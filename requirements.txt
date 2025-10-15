@@ -27,3 +27,6 @@ redis==5.2.1
 # Utilities
 python-dotenv==1.0.1
 python-dateutil==2.9.0
+
+# LLM Integration
+ollama==0.4.4
