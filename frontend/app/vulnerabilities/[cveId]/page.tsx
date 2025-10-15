@@ -45,9 +45,10 @@ async function fetchVulnerability(cveId: string): Promise<VulnerabilityDetail> {
 export default async function VulnerabilityDetailPage({
   params,
 }: {
-  params: { cveId: string };
+  params: Promise<{ cveId: string }>;
 }) {
-  const vuln = await fetchVulnerability(params.cveId);
+  const { cveId } = await params;
+  const vuln = await fetchVulnerability(cveId);
 
   return (
     <div className="space-y-6">

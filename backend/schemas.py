@@ -2,7 +2,7 @@
 Pydantic schemas for API request/response validation.
 """
 from datetime import datetime, date
-from typing import List, Optional
+from typing import List, Optional, Union, Any
 from pydantic import BaseModel, Field
 
 
@@ -23,6 +23,9 @@ class VulnerabilityList(VulnerabilityBase):
     published_at: Optional[datetime] = None
     modified_at: Optional[datetime] = None
     sources: Optional[List[str]] = None
+    simple_title: Optional[str] = None
+    simple_description: Optional[str] = None
+    llm_processed: bool = False
     
     class Config:
         from_attributes = True
@@ -38,9 +41,12 @@ class VulnerabilityDetail(VulnerabilityBase):
     affected_products: Optional[List[str]] = None
     vendors: Optional[List[str]] = None
     products: Optional[List[str]] = None
-    references: Optional[List[dict]] = None
+    references: Optional[List[Any]] = None  # Can be list of dicts or strings
     sources: Optional[List[str]] = None
     source_tags: Optional[List[str]] = None
+    simple_title: Optional[str] = None
+    simple_description: Optional[str] = None
+    llm_processed: bool = False
     created_at: datetime
     updated_at: datetime
     

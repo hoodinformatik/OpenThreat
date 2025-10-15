@@ -105,6 +105,8 @@ Generate ONLY the title, nothing else:"""
                 }
             )
             simple_title = title_response['response'].strip()
+            # Remove quotes if present
+            simple_title = simple_title.strip('"').strip("'").strip()
             
             # Prompt for description generation
             desc_prompt = f"""You are a cybersecurity expert explaining vulnerabilities to non-technical users.
@@ -118,14 +120,16 @@ Affected: {vendor_str} {product_str}
 Technical Description:
 {description[:800]}
 
-Generate a BRIEF, simple explanation (2-3 sentences, maximum 100 words) that:
+Write a BRIEF, simple explanation (2-3 sentences, maximum 100 words) that:
 1. Explains what the vulnerability is in plain language
 2. Describes the potential impact
 3. Avoids technical jargon
 
-Write for someone with NO security background. Be clear and concise.
+IMPORTANT: Start directly with the explanation. Do NOT use phrases like "Here's a brief explanation" or "In simple terms". Just write the description.
 
-Generate ONLY the description, nothing else:"""
+Example good output: "This vulnerability allows attackers to remotely access Windows systems without authentication. It affects all Windows 10 and 11 versions. Microsoft has released a security update to fix this issue."
+
+Generate ONLY the description:"""
 
             # Generate description
             desc_response = ollama.generate(
@@ -137,6 +141,11 @@ Generate ONLY the description, nothing else:"""
                 }
             )
             simple_description = desc_response['response'].strip()
+            # Remove quotes if present
+            simple_description = simple_description.strip('"').strip("'").strip()
+            
+            # Remove common LLM meta-text patterns
+            simple_description = self._clean_description(simple_description)
             
             logger.info(f"Generated summary for {cve_id}")
             
@@ -152,6 +161,41 @@ Generate ONLY the description, nothing else:"""
                 "simple_title": original_title or cve_id,
                 "simple_description": description[:200] + "..." if len(description) > 200 else description
             }
+    
+    def _clean_description(self, text: str) -> str:
+        """
+        Remove common LLM meta-text patterns from descriptions.
+        
+        Args:
+            text: Raw LLM output
+            
+        Returns:
+            Cleaned description
+        """
+        import re
+        
+        # Patterns to remove (case-insensitive)
+        patterns = [
+            r"^here'?s?\s+a\s+brief\s+explanation\s+of\s+the\s+vulnerability:?\s*",
+            r"^here'?s?\s+a\s+brief\s+summary:?\s*",
+            r"^here'?s?\s+what\s+you\s+need\s+to\s+know:?\s*",
+            r"^in\s+simple\s+terms:?\s*",
+            r"^to\s+put\s+it\s+simply:?\s*",
+            r"^basically,?\s*",
+            r"^essentially,?\s*",
+            r"^in\s+other\s+words,?\s*",
+        ]
+        
+        cleaned = text
+        for pattern in patterns:
+            cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
+        
+        # Remove leading/trailing whitespace and capitalize first letter
+        cleaned = cleaned.strip()
+        if cleaned and cleaned[0].islower():
+            cleaned = cleaned[0].upper() + cleaned[1:]
+        
+        return cleaned
     
     def batch_generate_summaries(
         self,
