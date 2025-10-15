@@ -1,0 +1,218 @@
+"""
+Statistics and dashboard endpoints.
+"""
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import func, desc
+from datetime import datetime, timedelta, timezone
+
+from ..database import get_db
+from ..models import Vulnerability, IngestionRun
+from ..schemas import StatsResponse
+
+router = APIRouter()
+
+
+@router.get("/stats", response_model=StatsResponse)
+async def get_statistics(db: Session = Depends(get_db)):
+    """
+    Get overall statistics for the dashboard.
+    
+    Returns:
+    - Total vulnerabilities
+    - Exploited vulnerabilities
+    - Breakdown by severity
+    - Recent updates count
+    - Last update timestamp
+    """
+    # Total vulnerabilities
+    total = db.query(func.count(Vulnerability.id)).scalar() or 0
+    
+    # Exploited vulnerabilities
+    exploited = db.query(func.count(Vulnerability.id)).filter(
+        Vulnerability.exploited_in_the_wild == True
+    ).scalar() or 0
+    
+    # Critical vulnerabilities
+    critical = db.query(func.count(Vulnerability.id)).filter(
+        Vulnerability.severity == "CRITICAL"
+    ).scalar() or 0
+    
+    # High vulnerabilities
+    high = db.query(func.count(Vulnerability.id)).filter(
+        Vulnerability.severity == "HIGH"
+    ).scalar() or 0
+    
+    # By severity
+    severity_counts = db.query(
+        Vulnerability.severity,
+        func.count(Vulnerability.id)
+    ).group_by(Vulnerability.severity).all()
+    
+    by_severity = {
+        severity or "UNKNOWN": count
+        for severity, count in severity_counts
+    }
+    
+    # Recent updates (last 7 days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+    recent = db.query(func.count(Vulnerability.id)).filter(
+        Vulnerability.updated_at >= cutoff
+    ).scalar() or 0
+    
+    # Last update timestamp
+    last_run = db.query(IngestionRun).filter(
+        IngestionRun.status == "success"
+    ).order_by(desc(IngestionRun.completed_at)).first()
+    
+    last_update = last_run.completed_at if last_run else None
+    
+    return StatsResponse(
+        total_vulnerabilities=total,
+        exploited_vulnerabilities=exploited,
+        critical_vulnerabilities=critical,
+        high_vulnerabilities=high,
+        by_severity=by_severity,
+        recent_updates=recent,
+        last_update=last_update
+    )
+
+
+@router.get("/stats/top-vendors")
+async def get_top_vendors(
+    limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    """
+    Get top vendors by vulnerability count.
+    
+    **Query Parameters:**
+    - `limit`: Number of vendors to return (default: 20)
+    """
+    from sqlalchemy import cast, String
+    from sqlalchemy.dialects.postgresql import JSONB
+    import json
+    
+    # This is a complex query - get all vendors and count
+    vulnerabilities = db.query(Vulnerability.vendors).filter(
+        Vulnerability.vendors.isnot(None)
+    ).all()
+    
+    vendor_counts = {}
+    for (vendors,) in vulnerabilities:
+        if vendors:
+            for vendor in vendors:
+                vendor_counts[vendor] = vendor_counts.get(vendor, 0) + 1
+    
+    # Sort and limit
+    top_vendors = sorted(
+        vendor_counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )[:limit]
+    
+    return {
+        "vendors": [
+            {"name": vendor, "count": count}
+            for vendor, count in top_vendors
+        ]
+    }
+
+
+@router.get("/stats/severity-distribution")
+async def get_severity_distribution(db: Session = Depends(get_db)):
+    """
+    Get vulnerability distribution by severity.
+    
+    Returns counts and percentages for each severity level.
+    """
+    total = db.query(func.count(Vulnerability.id)).scalar() or 1
+    
+    severity_counts = db.query(
+        Vulnerability.severity,
+        func.count(Vulnerability.id)
+    ).group_by(Vulnerability.severity).all()
+    
+    distribution = []
+    for severity, count in severity_counts:
+        distribution.append({
+            "severity": severity or "UNKNOWN",
+            "count": count,
+            "percentage": round((count / total) * 100, 2)
+        })
+    
+    # Sort by severity priority
+    severity_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "UNKNOWN": 4}
+    distribution.sort(key=lambda x: severity_order.get(x["severity"], 5))
+    
+    return {"distribution": distribution, "total": total}
+
+
+@router.get("/stats/timeline")
+async def get_vulnerability_timeline(
+    days: int = 30,
+    db: Session = Depends(get_db)
+):
+    """
+    Get vulnerability publication timeline.
+    
+    Returns daily counts of published vulnerabilities for the last N days.
+    
+    **Query Parameters:**
+    - `days`: Number of days to include (default: 30)
+    """
+    from sqlalchemy import func, cast, Date
+    
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    timeline = db.query(
+        cast(Vulnerability.published_at, Date).label("date"),
+        func.count(Vulnerability.id).label("count")
+    ).filter(
+        Vulnerability.published_at >= cutoff
+    ).group_by(
+        cast(Vulnerability.published_at, Date)
+    ).order_by(
+        cast(Vulnerability.published_at, Date)
+    ).all()
+    
+    return {
+        "timeline": [
+            {"date": str(date), "count": count}
+            for date, count in timeline
+        ]
+    }
+
+
+@router.get("/stats/ingestion-history")
+async def get_ingestion_history(
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    """
+    Get recent ingestion run history.
+    
+    **Query Parameters:**
+    - `limit`: Number of runs to return (default: 10)
+    """
+    runs = db.query(IngestionRun).order_by(
+        desc(IngestionRun.started_at)
+    ).limit(limit).all()
+    
+    return {
+        "runs": [
+            {
+                "id": run.id,
+                "source": run.source,
+                "status": run.status,
+                "started_at": run.started_at.isoformat() if run.started_at else None,
+                "completed_at": run.completed_at.isoformat() if run.completed_at else None,
+                "duration_seconds": run.duration_seconds,
+                "records_fetched": run.records_fetched,
+                "records_inserted": run.records_inserted,
+                "records_updated": run.records_updated,
+                "records_failed": run.records_failed,
+            }
+            for run in runs
+        ]
+    }

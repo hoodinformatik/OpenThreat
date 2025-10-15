@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: openthreat-db
+    environment:
+      POSTGRES_USER: openthreat
+      POSTGRES_PASSWORD: openthreat
+      POSTGRES_DB: openthreat
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openthreat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openthreat-network
+
+  # Redis for caching and Celery broker
+  redis:
+    image: redis:7-alpine
+    container_name: openthreat-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openthreat-network
+
+  # FastAPI Backend (will be added later)
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.api
+  #   container_name: openthreat-api
+  #   environment:
+  #     DATABASE_URL: postgresql://openthreat:openthreat@postgres:5432/openthreat
+  #     REDIS_URL: redis://redis:6379/0
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - openthreat-network
+
+  # Celery Worker for background tasks (will be added later)
+  # worker:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.worker
+  #   container_name: openthreat-worker
+  #   environment:
+  #     DATABASE_URL: postgresql://openthreat:openthreat@postgres:5432/openthreat
+  #     REDIS_URL: redis://redis:6379/0
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - openthreat-network
+
+  # Celery Beat for scheduled tasks (will be added later)
+  # beat:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.worker
+  #   container_name: openthreat-beat
+  #   command: celery -A backend.tasks beat --loglevel=info
+  #   environment:
+  #     DATABASE_URL: postgresql://openthreat:openthreat@postgres:5432/openthreat
+  #     REDIS_URL: redis://redis:6379/0
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - openthreat-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  openthreat-network:
+    driver: bridge
