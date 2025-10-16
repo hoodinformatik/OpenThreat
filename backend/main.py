@@ -7,10 +7,21 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 import os
+import logging
 
 from .database import get_db, engine
 from .models import Base
 from . import api
+from .config.logging_config import setup_logging
+from .utils.error_handlers import register_error_handlers
+from .middleware.rate_limit import rate_limit_middleware
+
+# Setup logging
+setup_logging(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    log_file=os.getenv("LOG_FILE")
+)
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
@@ -20,6 +31,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# Register error handlers
+register_error_handlers(app)
 
 # CORS middleware
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
@@ -31,6 +45,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate limiting middleware
+app.middleware("http")(rate_limit_middleware)
 
 # Include routers
 from .api import vulnerabilities, stats, search, health, feeds, tasks
@@ -66,15 +83,16 @@ async def root():
 @app.on_event("startup")
 async def startup_event():
     """Startup event handler."""
-    print("🚀 OpenThreat API starting...")
-    print(f"📊 Database: {os.getenv('DATABASE_URL', 'Not configured')}")
-    print(f"🌐 CORS Origins: {allowed_origins}")
+    logger.info("🚀 OpenThreat API starting...")
+    logger.info(f"📊 Database: {os.getenv('DATABASE_URL', 'Not configured')}")
+    logger.info(f"🌐 CORS Origins: {allowed_origins}")
+    logger.info(f"📝 Log Level: {os.getenv('LOG_LEVEL', 'INFO')}")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Shutdown event handler."""
-    print("👋 OpenThreat API shutting down...")
+    logger.info("👋 OpenThreat API shutting down...")
 
 
 if __name__ == "__main__":

@@ -1,110 +1,176 @@
-# OpenThreat - Public Threat Intelligence Dashboard
+<div align="center">
 
-**Mission**  
-Democratize Threat Intelligence.  
-We are building a **free and open-source platform** that aggregates *Indicators of Compromise (IOCs)*, *exploited vulnerabilities*, and *threat data* into a **clear and accessible interface**.  
-Not just for security professionals but also for **SMBs, NGOs, and the public**.
+# 🛡️ OpenThreat
+
+**Democratizing Threat Intelligence**
+
+A free and open-source platform for tracking CVEs and security threats
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Next.js](https://img.shields.io/badge/next.js-14-black.svg)](https://nextjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-16-blue.svg)](https://www.postgresql.org/)
+
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
+
+</div>
+
+---
+
+## 🎯 Mission
+
+OpenThreat makes threat intelligence accessible to everyone - from security professionals to small businesses and non-profits. We aggregate vulnerability data from trusted public sources into a clear, actionable interface.
 
 ## ✨ Features
 
-- ✅ **3,209 CVEs** tracked from multiple sources
-- ✅ **1,436 exploited vulnerabilities** (CISA KEV)
-- ✅ **Priority scoring** (exploitation + CVSS + recency)
-- ✅ **Advanced search** with multiple filters
-- ✅ **REST API** with 20+ endpoints
-- ✅ **RSS/Atom feeds** for monitoring
-- ✅ **Modern web interface** with real-time data
-- ✅ **PostgreSQL database** with full-text search
+### 📊 Data & Intelligence
+- **314,000+ CVEs** from NVD, CISA KEV, and BSI CERT-Bund
+- **1,436 exploited vulnerabilities** actively tracked
+- **Priority scoring** algorithm (exploitation + CVSS + recency)
+- **LLM-powered descriptions** for better understanding
+- **German security advisories** from BSI CERT-Bund
+
+### 🔍 Search & Discovery
+- **Advanced search** with multiple filters
+- **Full-text search** across all vulnerability data
+- **Filter by severity**, vendor, product, CWE, CVSS score
+- **Date range filtering** for recent threats
+
+### 🚀 Integration & Automation
+- **REST API** with 20+ endpoints
+- **RSS/Atom feeds** for monitoring
+- **Background tasks** with Celery
+- **Automatic data updates** from multiple sources
+
+### 💻 User Experience
+- **Modern web interface** built with Next.js
+- **Real-time statistics** dashboard
+- **Detailed CVE pages** with actionable insights
+- **Responsive design** for mobile and desktop
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Docker Desktop
-- Python 3.13+
-- Node.js 18+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Python 3.13+](https://www.python.org/downloads/)
+- [Node.js 18+](https://nodejs.org/)
 
-### 1. Start Infrastructure
+### One-Command Start
+
+**Windows:**
 ```bash
-docker-compose up -d postgres redis
+.\start.bat
 ```
 
-### 2. Set up Backend
+**Manual Setup:**
+
+1. **Clone the repository**
 ```bash
-# Install dependencies
+git clone https://github.com/hoodinformatik/OpenThreat.git
+cd OpenThreat
+```
+
+2. **Start infrastructure**
+```bash
+docker-compose up -d
+```
+
+3. **Set up backend**
+```bash
 pip install -r requirements.txt
-
-# Run migrations
 alembic upgrade head
-
-# Collect data
-python Data_Sample_Connectors/run_all.py
-
-# Load into database
-python -m backend.ingestion Data_Sample_Connectors/out/deduplicated_cves.ndjson initial_load
-
-# Start API
-python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8001
+python scripts/fetch_nvd_complete.py
+python -m uvicorn backend.main:app --reload --port 8001
 ```
 
-### 3. Start Frontend
+4. **Start frontend**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 4. Access
-- **Frontend**: http://localhost:3000
-- **API Docs**: http://localhost:8001/docs
-- **API**: http://localhost:8001
+5. **Access the application**
+- 🌐 **Frontend**: http://localhost:3000
+- 📚 **API Docs**: http://localhost:8001/docs
+- 🔌 **API**: http://localhost:8001
 
 ## 📊 Data Sources
 
-- [CISA Known Exploited Vulnerabilities (KEV)](https://www.cisa.gov/known-exploited-vulnerabilities-catalog)  
-- [NVD CVE Database](https://nvd.nist.gov/)  
-- [CVE Search (CIRCL)](https://cve.circl.lu/)
-- [MITRE ATT&CK](https://attack.mitre.org/)  
+We aggregate data from trusted public sources:
+
+| Source | Description | Update Frequency |
+|--------|-------------|------------------|
+| [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | Known Exploited Vulnerabilities | Daily |
+| [NVD](https://nvd.nist.gov/) | National Vulnerability Database | Every 2 hours |
+| [BSI CERT-Bund](https://wid.cert-bund.de/) | German Security Advisories | Daily |  
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────┐
-│   Frontend  │  Next.js 14, TailwindCSS
-│  (Port 3000)│
-└──────┬──────┘
-       │
-       │ REST API
-       │
-┌──────▼──────┐
-│  FastAPI    │  Python 3.13, SQLAlchemy
-│  (Port 8001)│
-└──────┬──────┘
-       │
-       ├─────────────┐
-       │             │
-┌──────▼──────┐ ┌───▼────┐
-│ PostgreSQL  │ │ Redis  │
-│  (Port 5432)│ │ (6379) │
-└─────────────┘ └────────┘
+┌──────────────────────────────────────────────┐
+│           Frontend (Next.js 14)              │
+│     Modern UI with TailwindCSS               │
+│            Port 3000                         │
+└────────────────┬─────────────────────────────┘
+                 │ REST API
+                 ▼
+┌──────────────────────────────────────────────┐
+│        Backend API (FastAPI)                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │   API    │  │  Celery  │  │   LLM    │  │
+│  │Endpoints │  │  Tasks   │  │ Service  │  │
+│  └──────────┘  └──────────┘  └──────────┘  │
+│            Port 8001                         │
+└────────────────┬─────────────────────────────┘
+                 │
+        ┌────────┴────────┐
+        ▼                 ▼
+┌──────────────┐  ┌──────────────┐
+│ PostgreSQL   │  │    Redis     │
+│   Port 5432  │  │   Port 6379  │
+└──────────────┘  └──────────────┘
 ```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
 
 ## 📖 Documentation
 
-- [API Documentation](API.md)
-- [Database Schema](DATABASE.md)
+- [API Documentation](docs/API.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Database Schema](docs/DATABASE.md)
+- [BSI Integration](docs/BSI_INTEGRATION.md)
+- [Security](docs/SECURITY.md)
 - [Development Progress](PROGRESS.md)
-- [TODO List](TODO.md)
 
+## 🤝 Contributing
 
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## Contribution Guide
+**Quick Links:**
+- [Report a Bug](https://github.com/hoodinformatik/OpenThreat/issues/new?labels=bug)
+- [Request a Feature](https://github.com/hoodinformatik/OpenThreat/issues/new?labels=enhancement)
+- [View Changelog](CHANGELOG.md)
 
-1. Forks & PRs welcome!  
-2. Use Issues for feature requests & bug reports.  
-3. Only ingest **public and legally open data sources**.  
-4. Do **not** store PII or illegal leak data.  
+## 📧 Contact
 
-## Vision
+- **Email**: hoodinformatik@gmail.com
+- **GitHub**: [@hoodinformatik](https://github.com/hoodinformatik)
 
-This project aims to make **threat intelligence accessible for everyone**.  
-A transparent, open, and free dashboard that helps organizations; no matter the size, to understand risks and react faster.
+## 📜 License
+
+Apache License 2.0 - see [LICENSE](LICENSE) for details.
+
+## 🌟 Star History
+
+If you find OpenThreat useful, please consider giving it a star! ⭐
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the security community**
+
+[Report Bug](https://github.com/hoodinformatik/OpenThreat/issues) • [Request Feature](https://github.com/hoodinformatik/OpenThreat/issues) • [Documentation](docs/)
+
+</div>

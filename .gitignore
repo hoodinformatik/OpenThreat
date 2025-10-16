@@ -45,6 +45,15 @@ alembic/versions/*.pyc
 *.log
 logs/
 
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
 # OS
 .DS_Store
 Thumbs.db
