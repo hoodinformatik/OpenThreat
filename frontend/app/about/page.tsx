@@ -237,54 +237,6 @@ export default function AboutPage() {
         </CardContent>
       </Card>
 
-      {/* Tech Stack */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Technology</CardTitle>
-          <CardDescription>Built with modern, reliable tools</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-1">Frontend</h4>
-              <ul className="text-gray-700 space-y-1">
-                <li>Next.js 14</li>
-                <li>React 18</li>
-                <li>TypeScript</li>
-                <li>TailwindCSS</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-1">Backend</h4>
-              <ul className="text-gray-700 space-y-1">
-                <li>Python 3.13</li>
-                <li>FastAPI</li>
-                <li>SQLAlchemy</li>
-                <li>Pydantic</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-1">Database</h4>
-              <ul className="text-gray-700 space-y-1">
-                <li>PostgreSQL 16</li>
-                <li>Redis 7</li>
-                <li>Alembic</li>
-                <li>Full-text search</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-1">Deployment</h4>
-              <ul className="text-gray-700 space-y-1">
-                <li>Docker</li>
-                <li>Docker Compose</li>
-                <li>Uvicorn</li>
-                <li>Self-hosted</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Get Involved */}
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader>
@@ -299,7 +251,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-wrap gap-4">
             <a
-              href="https://github.com/yourusername/openthreat"
+              href="https://github.com/hoodinformatik/OpenThreat"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
@@ -308,7 +260,7 @@ export default function AboutPage() {
               <span>View on GitHub</span>
             </a>
             <a
-              href="mailto:contact@openthreat.io"
+              href="mailto:hoodinformatik@gmail.com"
               className="inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             >
               <Mail className="h-5 w-5" />

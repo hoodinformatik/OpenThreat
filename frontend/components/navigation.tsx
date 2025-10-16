@@ -54,7 +54,7 @@ export function Navigation() {
 
           <div className="flex items-center space-x-4">
             <a
-              href="https://github.com/yourusername/openthreat"
+              href="https://github.com/hoodinformatik/OpenThreat"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-600 hover:text-gray-900"

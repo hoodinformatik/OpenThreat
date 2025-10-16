@@ -26,7 +26,24 @@ export default function RootLayout({
           <footer className="border-t mt-12 py-6 text-center text-sm text-gray-600">
             <p>OpenThreat - Democratizing Threat Intelligence</p>
             <p className="mt-1">
-              Data sources: CISA KEV, NVD, CVE Search, MITRE ATT&CK
+              Data sources: CISA KEV, NVD, BSI CERT-Bund
+            </p>
+            <p className="mt-2">
+              <a 
+                href="https://github.com/hoodinformatik/OpenThreat" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                GitHub
+              </a>
+              {" · "}
+              <a 
+                href="mailto:hoodinformatik@gmail.com"
+                className="text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                Contact
+              </a>
             </p>
           </footer>
         </div>

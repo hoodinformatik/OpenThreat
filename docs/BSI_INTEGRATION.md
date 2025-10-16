@@ -290,4 +290,12 @@ A: Nein, nur RSS-Feed. Detail-Daten müssen gescraped werden.
 
 ---
 
-**Letzte Aktualisierung:** 2024-10-16
+---
+
+## 📧 Support
+
+Fragen oder Probleme? Kontaktiere uns:
+- **Email:** hoodinformatik@gmail.com
+- **GitHub:** https://github.com/hoodinformatik/OpenThreat
+
+**Letzte Aktualisierung:** 2025-10-16
