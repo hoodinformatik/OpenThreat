@@ -23,10 +23,17 @@ out/
 *.db
 *.sqlite
 
-# Environment
+# Environment - NEVER commit these files!
 .env
 .env.local
 .env*.local
+*.env
+!.env.example
+
+# API Keys and Secrets
+*_api_key.txt
+*_secret.txt
+nvd_checkpoint.txt
 
 # Docker
 docker-compose.override.yml
