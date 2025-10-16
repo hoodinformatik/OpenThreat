@@ -49,6 +49,13 @@ app.add_middleware(
 # Rate limiting middleware
 app.middleware("http")(rate_limit_middleware)
 
+# Metrics middleware
+from .middleware.metrics import metrics_middleware, metrics_endpoint
+app.middleware("http")(metrics_middleware)
+
+# Metrics endpoint
+app.add_api_route("/metrics", metrics_endpoint, methods=["GET"], include_in_schema=False)
+
 # Include routers
 from .api import vulnerabilities, stats, search, health, feeds, tasks
 from .api.v1 import llm, data_sources

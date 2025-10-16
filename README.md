@@ -141,6 +141,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture docum
 - [Database Schema](docs/DATABASE.md)
 - [BSI Integration](docs/BSI_INTEGRATION.md)
 - [Security](docs/SECURITY.md)
+- [Testing Guide](docs/TESTING.md)
+- [Monitoring Guide](docs/MONITORING.md)
 - [Development Progress](PROGRESS.md)
 
 ## 🤝 Contributing
