@@ -272,24 +272,369 @@ OpenThreat/
 
 ---
 
-## 📈 Next Session Goals
+## 📈 Roadmap: Complete CVE Coverage & Automation
 
-1. **Frontend Development** (Phase 5)
-   - Set up Next.js project
-   - Create dashboard with KPIs
-   - Build vulnerability list/detail pages
-   - Implement search UI
+### Phase 6 — Complete Data Coverage 🔄
 
-2. **Automation** (Phase 2 completion)
-   - Set up Celery for background tasks
-   - Create scheduler for 2-hour updates
-   - Add health monitoring
+#### Goal: Collect ALL CVEs (200,000+) from comprehensive sources
 
-3. **Enhancements**
-   - Plain-language vulnerability descriptions
-   - German/English localization
-   - Rate limiting for API
-   - GitHub Actions CI/CD
+**Primary Data Sources:**
+
+1. **NVD Complete Database** ⏳
+   - Full CVE dataset from 1999-present (~200,000 CVEs)
+   - Method: NVD API 2.0 with pagination
+   - Update Strategy: Initial bulk load + incremental updates
+   - Frequency: Every 2 hours for new/modified CVEs
+   - Implementation: `scripts/fetch_nvd_complete.py`
+
+2. **CVE.org Official Feed** ⏳
+   - Direct from MITRE CVE Program
+   - JSON 5.0 format
+   - Method: GitHub repository sync or API
+   - Update Strategy: Daily full sync
+   - Frequency: Daily at 00:00 UTC
+   - Implementation: `backend/services/cve_org_service.py`
+
+3. **CISA KEV (Known Exploited Vulnerabilities)** ✅
+   - Already implemented
+   - Update Strategy: Daily refresh
+   - Frequency: Daily at 06:00 UTC
+
+4. **VulnCheck KEV** ⏳
+   - Extended exploitation intelligence
+   - Requires API key (free tier available)
+   - Update Strategy: Daily sync
+   - Frequency: Every 6 hours
+   - Implementation: `backend/services/vulncheck_service.py`
+
+**Secondary/Enrichment Sources:**
+
+5. **Exploit-DB** ⏳
+   - Public exploit database
+   - Links CVEs to working exploits
+   - Method: CSV/JSON export + scraping
+   - Update Strategy: Weekly sync
+   - Implementation: `backend/services/exploitdb_service.py`
+
+6. **GitHub Security Advisories** ⏳
+   - Open source vulnerability database
+   - Method: GraphQL API
+   - Update Strategy: Daily sync
+   - Frequency: Daily at 12:00 UTC
+   - Implementation: `backend/services/github_advisory_service.py`
+
+7. **OSV (Open Source Vulnerabilities)** ⏳
+   - Google's vulnerability database
+   - Covers open source ecosystems
+   - Method: REST API
+   - Update Strategy: Daily sync
+   - Implementation: `backend/services/osv_service.py`
+
+8. **Vulners.com API** ⏳
+   - Aggregated vulnerability data
+   - Requires API key (free tier: 100 requests/day)
+   - Update Strategy: Weekly enrichment
+   - Implementation: `backend/services/vulners_service.py`
+
+---
+
+### Automation Strategy
+
+#### 1. Initial Bulk Import (One-time)
+
+```python
+# scripts/initial_bulk_load.py
+"""
+Load complete historical CVE dataset
+Estimated: 200,000+ CVEs
+Duration: 6-12 hours
+"""
+
+Tasks:
+1. Fetch NVD complete dataset (1999-2024)
+2. Fetch CVE.org complete dataset
+3. Deduplicate and merge
+4. Bulk insert to database
+5. Queue LLM processing (background)
+```
+
+**Execution Plan:**
+```bash
+# Step 1: Download all data (parallel)
+python scripts/fetch_nvd_complete.py --start-year 1999 --end-year 2024
+
+# Step 2: Merge and deduplicate
+python scripts/merge_all_sources.py --output complete_cves.ndjson
+
+# Step 3: Bulk load to database
+python scripts/bulk_import.py --file complete_cves.ndjson --batch-size 1000
+
+# Step 4: Process with LLM (background, low priority)
+python scripts/process_with_llm.py --all --batch-size 100
+```
+
+---
+
+#### 2. Incremental Updates (Automated)
+
+**Celery Beat Schedule:**
+
+```python
+# backend/celery_app.py - Scheduled Tasks
+
+CELERYBEAT_SCHEDULE = {
+    # Every 2 hours: NVD recent changes
+    'fetch-nvd-recent': {
+        'task': 'tasks.fetch_nvd_recent',
+        'schedule': crontab(minute=0, hour='*/2'),  # 00:00, 02:00, 04:00...
+    },
+    
+    # Daily 00:00 UTC: CVE.org full sync
+    'fetch-cve-org': {
+        'task': 'tasks.fetch_cve_org',
+        'schedule': crontab(minute=0, hour=0),
+    },
+    
+    # Daily 06:00 UTC: CISA KEV
+    'fetch-cisa-kev': {
+        'task': 'tasks.fetch_cisa_kev',
+        'schedule': crontab(minute=0, hour=6),
+    },
+    
+    # Every 6 hours: VulnCheck KEV
+    'fetch-vulncheck': {
+        'task': 'tasks.fetch_vulncheck',
+        'schedule': crontab(minute=0, hour='*/6'),
+    },
+    
+    # Daily 12:00 UTC: GitHub Advisories
+    'fetch-github-advisories': {
+        'task': 'tasks.fetch_github_advisories',
+        'schedule': crontab(minute=0, hour=12),
+    },
+    
+    # Weekly Sunday 03:00 UTC: Exploit-DB
+    'fetch-exploitdb': {
+        'task': 'tasks.fetch_exploitdb',
+        'schedule': crontab(minute=0, hour=3, day_of_week=0),
+    },
+    
+    # Daily 18:00 UTC: OSV
+    'fetch-osv': {
+        'task': 'tasks.fetch_osv',
+        'schedule': crontab(minute=0, hour=18),
+    },
+    
+    # Weekly Monday 04:00 UTC: Vulners enrichment
+    'enrich-vulners': {
+        'task': 'tasks.enrich_with_vulners',
+        'schedule': crontab(minute=0, hour=4, day_of_week=1),
+    },
+    
+    # Continuous: LLM processing queue (process 10 CVEs every 5 minutes)
+    'process-llm-queue': {
+        'task': 'tasks.process_llm_queue',
+        'schedule': crontab(minute='*/5'),  # Every 5 minutes
+    },
+    
+    # Daily 02:00 UTC: Database maintenance
+    'db-maintenance': {
+        'task': 'tasks.database_vacuum',
+        'schedule': crontab(minute=0, hour=2),
+    },
+}
+```
+
+---
+
+#### 3. Smart Deduplication & Merging
+
+```python
+# backend/services/deduplication.py
+
+Priority Order (highest to lowest):
+1. NVD (official, most complete)
+2. CVE.org (authoritative)
+3. VulnCheck (enrichment)
+4. CISA KEV (exploitation status)
+5. GitHub Advisories (open source context)
+6. Exploit-DB (proof of concept)
+7. OSV (ecosystem-specific)
+8. Vulners (aggregated)
+
+Merge Strategy:
+- CVE ID: Primary key (unique)
+- Title: Prefer NVD > CVE.org > others
+- Description: Prefer NVD (most detailed)
+- CVSS: Prefer NVD official score
+- Exploited: Union of all sources (if ANY source says exploited = true)
+- References: Merge all unique URLs
+- CWE: Merge all unique CWE IDs
+- Vendors/Products: Merge all unique combinations
+- Sources: Track all contributing sources
+```
+
+---
+
+#### 4. LLM Processing Queue
+
+```python
+# backend/tasks/llm_tasks.py
+
+Strategy:
+1. Priority Queue:
+   - High Priority: Exploited CVEs, CRITICAL severity, Recent (< 7 days)
+   - Medium Priority: HIGH severity, Recent (< 30 days)
+   - Low Priority: All others
+
+2. Rate Limiting:
+   - Process 10 CVEs per batch
+   - 5-minute intervals
+   - ~2,880 CVEs per day
+   - Complete 200,000 CVEs in ~70 days (background)
+
+3. Retry Logic:
+   - 3 retries on failure
+   - Exponential backoff
+   - Mark as failed after 3 attempts
+   - Manual review queue
+
+4. Monitoring:
+   - Track processing rate
+   - Monitor Ollama health
+   - Alert on failures
+   - Dashboard for progress
+```
+
+---
+
+#### 5. Data Freshness Monitoring
+
+```python
+# backend/api/v1/health.py
+
+Health Check Endpoint:
+GET /api/v1/health/sources
+
+Response:
+{
+  "sources": [
+    {
+      "name": "NVD",
+      "last_update": "2024-10-16T06:00:00Z",
+      "status": "healthy",
+      "next_update": "2024-10-16T08:00:00Z",
+      "total_cves": 198543
+    },
+    {
+      "name": "CISA KEV",
+      "last_update": "2024-10-16T06:00:00Z",
+      "status": "healthy",
+      "next_update": "2024-10-17T06:00:00Z",
+      "total_cves": 1436
+    }
+  ],
+  "database": {
+    "total_cves": 200145,
+    "llm_processed": 45230,
+    "llm_pending": 154915
+  }
+}
+```
+
+---
+
+### Implementation Checklist
+
+**Phase 6.1: Complete Data Sources** ⏳
+- [ ] NVD Complete API integration
+- [ ] CVE.org feed integration
+- [ ] VulnCheck API integration
+- [ ] Exploit-DB integration
+- [ ] GitHub Security Advisories integration
+- [ ] OSV integration
+- [ ] Vulners API integration
+
+**Phase 6.2: Automation Infrastructure** ⏳
+- [ ] Celery Beat schedule configuration
+- [ ] Task monitoring dashboard
+- [ ] Error handling and retry logic
+- [ ] Rate limiting for external APIs
+- [ ] Health check endpoints
+- [ ] Alert system for failures
+
+**Phase 6.3: Bulk Import** ⏳
+- [ ] Bulk download scripts
+- [ ] Parallel processing
+- [ ] Progress tracking
+- [ ] Resume capability (checkpoint)
+- [ ] Database optimization for bulk insert
+
+**Phase 6.4: LLM Processing** ⏳
+- [ ] Priority queue implementation
+- [ ] Batch processing optimization
+- [ ] Progress dashboard
+- [ ] Manual review queue
+- [ ] Quality metrics
+
+**Phase 6.5: Monitoring & Maintenance** ⏳
+- [ ] Grafana dashboards
+- [ ] Prometheus metrics
+- [ ] Log aggregation
+- [ ] Database backup automation
+- [ ] Performance monitoring
+
+---
+
+### Estimated Timeline
+
+**Week 1-2: Data Source Integration**
+- Implement all 8 data sources
+- Test individual connectors
+- Validate data quality
+
+**Week 3: Bulk Import**
+- Download complete datasets
+- Merge and deduplicate
+- Load into database
+- Verify data integrity
+
+**Week 4: Automation Setup**
+- Configure Celery Beat
+- Implement all scheduled tasks
+- Test update cycles
+- Monitor for 7 days
+
+**Week 5-6: LLM Processing**
+- Process high-priority CVEs first
+- Monitor processing rate
+- Optimize prompts
+- Background processing for remaining CVEs
+
+**Week 7-8: Monitoring & Polish**
+- Set up dashboards
+- Configure alerts
+- Performance tuning
+- Documentation
+
+---
+
+### Success Metrics
+
+**Data Coverage:**
+- ✅ Target: 200,000+ CVEs
+- ✅ Update Latency: < 2 hours for critical CVEs
+- ✅ Data Freshness: 95% of CVEs updated within 24 hours
+
+**Automation:**
+- ✅ Uptime: 99.5% for scheduled tasks
+- ✅ Error Rate: < 1% for data fetching
+- ✅ LLM Processing: 100% coverage within 90 days
+
+**Performance:**
+- ✅ API Response Time: < 200ms (p95)
+- ✅ Search Performance: < 500ms for complex queries
+- ✅ Database Size: < 50GB (optimized)
 
 ---
 
