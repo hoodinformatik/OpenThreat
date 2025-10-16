@@ -34,6 +34,7 @@ app.add_middleware(
 
 # Include routers
 from .api import vulnerabilities, stats, search, health, feeds, tasks
+from .api.v1 import llm
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(vulnerabilities.router, prefix="/api/v1", tags=["Vulnerabilities"])
@@ -41,6 +42,7 @@ app.include_router(stats.router, prefix="/api/v1", tags=["Statistics"])
 app.include_router(search.router, prefix="/api/v1", tags=["Search"])
 app.include_router(feeds.router, prefix="/api/v1", tags=["Feeds"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["Tasks"])
+app.include_router(llm.router, prefix="/api/v1", tags=["LLM Processing"])
 
 
 @app.get("/")

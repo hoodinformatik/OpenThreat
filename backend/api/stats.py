@@ -25,29 +25,32 @@ async def get_statistics(db: Session = Depends(get_db)):
     - Recent updates count
     - Last update timestamp
     """
+    # Base query - only CVEs
+    base_query = db.query(Vulnerability).filter(Vulnerability.cve_id.like('CVE-%'))
+    
     # Total vulnerabilities
-    total = db.query(func.count(Vulnerability.id)).scalar() or 0
+    total = base_query.count() or 0
     
     # Exploited vulnerabilities
-    exploited = db.query(func.count(Vulnerability.id)).filter(
+    exploited = base_query.filter(
         Vulnerability.exploited_in_the_wild == True
-    ).scalar() or 0
+    ).count() or 0
     
     # Critical vulnerabilities
-    critical = db.query(func.count(Vulnerability.id)).filter(
+    critical = base_query.filter(
         Vulnerability.severity == "CRITICAL"
-    ).scalar() or 0
+    ).count() or 0
     
     # High vulnerabilities
-    high = db.query(func.count(Vulnerability.id)).filter(
+    high = base_query.filter(
         Vulnerability.severity == "HIGH"
-    ).scalar() or 0
+    ).count() or 0
     
     # By severity
     severity_counts = db.query(
         Vulnerability.severity,
         func.count(Vulnerability.id)
-    ).group_by(Vulnerability.severity).all()
+    ).filter(Vulnerability.cve_id.like('CVE-%')).group_by(Vulnerability.severity).all()
     
     by_severity = {
         severity or "UNKNOWN": count
@@ -56,9 +59,9 @@ async def get_statistics(db: Session = Depends(get_db)):
     
     # Recent updates (last 7 days)
     cutoff = datetime.now(timezone.utc) - timedelta(days=7)
-    recent = db.query(func.count(Vulnerability.id)).filter(
+    recent = base_query.filter(
         Vulnerability.updated_at >= cutoff
-    ).scalar() or 0
+    ).count() or 0
     
     # Last update timestamp
     last_run = db.query(IngestionRun).filter(

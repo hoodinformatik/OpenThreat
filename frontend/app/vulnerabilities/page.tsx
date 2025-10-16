@@ -197,12 +197,18 @@ export default function VulnerabilitiesPage() {
                         </div>
 
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {vuln.title}
+                          {vuln.simple_title || vuln.title}
                         </h3>
 
-                        {vuln.description && (
+                        {(vuln.simple_description || vuln.description) && (
                           <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                            {vuln.description}
+                            {vuln.simple_description || vuln.description}
+                          </p>
+                        )}
+                        
+                        {!vuln.description && !vuln.simple_description && (
+                          <p className="text-gray-500 text-sm italic mb-3">
+                            No description available. Processing in background...
                           </p>
                         )}
 

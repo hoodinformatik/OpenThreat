@@ -239,6 +239,11 @@ class NVDCompleteService:
             logger.warning("CVE without ID, skipping")
             return
         
+        # Skip non-CVE entries (e.g., GHSA)
+        if not cve_id.startswith("CVE-"):
+            logger.debug(f"Skipping non-CVE entry: {cve_id}")
+            return
+        
         # Extract basic info
         published = cve.get("published")
         modified = cve.get("lastModified")

@@ -47,8 +47,8 @@ async def search_vulnerabilities(
     - `sort_by`: Field to sort by (priority_score, cvss_score, published_at, etc.)
     - `sort_order`: Sort direction (asc/desc)
     """
-    # Build query
-    query = db.query(Vulnerability)
+    # Build query - only CVEs
+    query = db.query(Vulnerability).filter(Vulnerability.cve_id.like('CVE-%'))
     
     # Text search
     if q:

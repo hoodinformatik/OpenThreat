@@ -4,6 +4,9 @@ export interface Vulnerability {
   cve_id: string;
   title: string;
   description?: string;
+  simple_title?: string;
+  simple_description?: string;
+  llm_processed?: boolean;
   cvss_score?: number;
   cvss_vector?: string;
   severity?: string;

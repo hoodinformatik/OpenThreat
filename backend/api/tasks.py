@@ -8,10 +8,10 @@ from datetime import datetime
 
 from ..celery_app import celery_app
 from ..tasks import (
-    update_vulnerabilities_task,
-    clean_cache_task,
-    update_stats_cache_task,
-    test_task,
+    process_cve_with_llm,
+    process_llm_queue,
+    process_new_cves,
+    get_llm_stats
 )
 
 router = APIRouter()
@@ -30,74 +30,58 @@ class TaskStatusResponse(BaseModel):
     error: Optional[str] = None
 
 
-@router.post("/tasks/update-vulnerabilities", response_model=TaskResponse)
-async def trigger_vulnerability_update():
+@router.post("/tasks/process-new-cves", response_model=TaskResponse)
+async def trigger_new_cves_processing():
     """
-    Manually trigger a vulnerability update.
+    Manually trigger processing of new CVEs.
     
-    This will:
-    1. Collect data from all sources (CISA, NVD, etc.)
-    2. Deduplicate and merge data
-    3. Ingest into database
-    
-    **Note:** This is a long-running task (10-30 minutes).
-    Use the task ID to check status.
+    Processes CVEs added in the last hour with LLM.
     """
-    task = update_vulnerabilities_task.delay()
+    task = process_new_cves.delay()
     
     return TaskResponse(
         task_id=task.id,
         status="pending",
-        message="Vulnerability update task started. This may take 10-30 minutes."
+        message="New CVEs processing task started."
     )
 
 
-@router.post("/tasks/clean-cache", response_model=TaskResponse)
-async def trigger_cache_cleanup():
+@router.post("/tasks/process-llm-batch", response_model=TaskResponse)
+async def trigger_llm_batch(batch_size: int = 10, priority: str = "high"):
     """
-    Manually trigger cache cleanup.
+    Manually trigger batch LLM processing.
     
-    Removes cache entries older than 24 hours.
+    Args:
+        batch_size: Number of CVEs to process (1-100)
+        priority: Priority level (high, medium, low)
     """
-    task = clean_cache_task.delay()
+    if priority not in ["high", "medium", "low"]:
+        raise HTTPException(status_code=400, detail="Invalid priority")
+    
+    if batch_size < 1 or batch_size > 100:
+        raise HTTPException(status_code=400, detail="Batch size must be 1-100")
+    
+    task = process_llm_queue.delay(batch_size=batch_size, priority=priority)
     
     return TaskResponse(
         task_id=task.id,
         status="pending",
-        message="Cache cleanup task started."
+        message=f"LLM batch processing started: {batch_size} CVEs with {priority} priority"
     )
 
 
-@router.post("/tasks/update-stats", response_model=TaskResponse)
-async def trigger_stats_update():
+@router.get("/tasks/llm-stats")
+async def get_llm_processing_stats():
     """
-    Manually trigger statistics cache update.
+    Get LLM processing statistics.
     
-    Recalculates dashboard statistics.
+    Shows progress of CVE processing with LLM.
     """
-    task = update_stats_cache_task.delay()
-    
-    return TaskResponse(
-        task_id=task.id,
-        status="pending",
-        message="Statistics update task started."
-    )
-
-
-@router.post("/tasks/test", response_model=TaskResponse)
-async def trigger_test_task(message: str = "Test message"):
-    """
-    Test task to verify Celery is working.
-    
-    Returns immediately with a simple message.
-    """
-    task = test_task.delay(message)
-    
-    return TaskResponse(
-        task_id=task.id,
-        status="pending",
-        message=f"Test task started with message: {message}"
-    )
+    try:
+        result = get_llm_stats()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
@@ -199,8 +183,8 @@ async def get_workers_status():
 def _get_task_description(task_name: str) -> str:
     """Get human-readable description for a task."""
     descriptions = {
-        "backend.tasks.update_vulnerabilities_task": "Update vulnerabilities from all data sources",
-        "backend.tasks.clean_cache_task": "Clean old cache entries",
-        "backend.tasks.update_stats_cache_task": "Update statistics cache",
+        "tasks.process_new_cves": "Process newly added CVEs with LLM",
+        "tasks.process_llm_queue": "Process CVE queue with LLM (priority-based)",
+        "tasks.process_cve_with_llm": "Process single CVE with LLM",
     }
     return descriptions.get(task_name, "No description available")

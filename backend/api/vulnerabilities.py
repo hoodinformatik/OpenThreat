@@ -32,8 +32,8 @@ async def list_vulnerabilities(
     - `sort_by`: priority_score, cvss_score, published_at, modified_at
     - `sort_order`: asc, desc
     """
-    # Build query
-    query = db.query(Vulnerability)
+    # Build query - only CVEs (no GHSA or other formats)
+    query = db.query(Vulnerability).filter(Vulnerability.cve_id.like('CVE-%'))
     
     # Apply filters
     if severity:
@@ -81,6 +81,7 @@ async def list_exploited_vulnerabilities(
     sorted by priority score.
     """
     query = db.query(Vulnerability).filter(
+        Vulnerability.cve_id.like('CVE-%'),
         Vulnerability.exploited_in_the_wild == True
     )
     
