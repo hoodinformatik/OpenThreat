@@ -1,13 +1,13 @@
-# 📦 Repository Guide - Was gehört ins Git Repo?
+# 📦 Repository Guide - What Belongs in Git?
 
-## ✅ Was SOLLTE ins Repo (Commit & Push)
+## ✅ What SHOULD be in the Repo (Commit & Push)
 
-### **Dokumentation**
-- ✅ `README.md` - Projekt-Übersicht
-- ✅ `CONTRIBUTING.md` - Contribution Guidelines
-- ✅ `CHANGELOG.md` - Version History
-- ✅ `LICENSE` - Open Source Lizenz
-- ✅ `docs/` - Alle Dokumentation
+### **Documentation**
+- ✅ `README.md` - Project overview
+- ✅ `CONTRIBUTING.md` - Contribution guidelines
+- ✅ `CHANGELOG.md` - Version history
+- ✅ `LICENSE` - Open source license
+- ✅ `docs/` - All documentation
   - `API.md`
   - `ARCHITECTURE.md`
   - `DATABASE.md`
@@ -18,107 +18,107 @@
   - `BSI_INTEGRATION.md`
 
 ### **Code**
-- ✅ `backend/` - Gesamter Backend-Code
-- ✅ `frontend/` - Gesamter Frontend-Code
-- ✅ `tests/` - Alle Tests
-- ✅ `alembic/` - Database Migrations
+- ✅ `backend/` - All backend code
+- ✅ `frontend/` - All frontend code
+- ✅ `tests/` - All tests
+- ✅ `alembic/` - Database migrations
 
 ### **Configuration (Templates)**
-- ✅ `.env.example` - Environment Template
-- ✅ `.env.production.example` - Production Template
-- ✅ `docker-compose.yml` - Development Setup
-- ✅ `docker-compose.prod.yml` - Production Setup
+- ✅ `.env.example` - Environment template
+- ✅ `.env.production.example` - Production template
+- ✅ `docker-compose.yml` - Development setup
+- ✅ `docker-compose.prod.yml` - Production setup
 - ✅ `Dockerfile.prod` - Production Dockerfile
-- ✅ `pytest.ini` - Test Configuration
-- ✅ `requirements.txt` - Python Dependencies
-- ✅ `requirements-test.txt` - Test Dependencies
-- ✅ `alembic.ini` - Database Migration Config
+- ✅ `pytest.ini` - Test configuration
+- ✅ `requirements.txt` - Python dependencies
+- ✅ `requirements-test.txt` - Test dependencies
+- ✅ `alembic.ini` - Database migration config
 
 ### **Deployment**
-- ✅ `nginx/nginx.conf` - Nginx Configuration
-- ✅ `deploy.sh` - Deployment Script
-- ✅ `start.bat` - Windows Start Script
+- ✅ `nginx/nginx.conf` - Nginx configuration
+- ✅ `deploy.sh` - Deployment script
+- ✅ `start.bat` - Windows start script
 
 ### **Project Management**
-- ✅ `.gitignore` - Git Ignore Rules
-- ✅ `PROGRESS.md` - Development Progress (optional)
-- ✅ `REFACTORING_PLAN.md` - Refactoring Roadmap (optional)
+- ✅ `.gitignore` - Git ignore rules
+- ✅ `PROGRESS.md` - Development progress (optional)
+- ✅ `REFACTORING_PLAN.md` - Refactoring roadmap (optional)
 
 ---
 
-## ❌ Was NICHT ins Repo (Niemals committen!)
+## ❌ What NOT to Put in Repo (Never Commit!)
 
 ### **Secrets & Credentials**
-- ❌ `.env` - Echte Environment Variables
-- ❌ `.env.local` - Lokale Secrets
-- ❌ `.env.production` - Production Secrets
-- ❌ `*_api_key.txt` - API Keys
-- ❌ `*_secret.txt` - Secret Files
-- ❌ `*.pem` - Private Keys
-- ❌ `*.key` - SSL Keys
-- ❌ `*.crt` - Certificates (außer public)
+- ❌ `.env` - Real environment variables
+- ❌ `.env.local` - Local secrets
+- ❌ `.env.production` - Production secrets
+- ❌ `*_api_key.txt` - API keys
+- ❌ `*_secret.txt` - Secret files
+- ❌ `*.pem` - Private keys
+- ❌ `*.key` - SSL keys
+- ❌ `*.crt` - Certificates (except public)
 
 ### **Runtime Data**
-- ❌ `*.log` - Log Files
-- ❌ `logs/` - Log Directory
-- ❌ `*.db` - SQLite Databases
-- ❌ `*.sqlite` - SQLite Files
-- ❌ `celerybeat-schedule` - Celery Schedule
-- ❌ `nvd_checkpoint.txt` - Runtime Checkpoints
+- ❌ `*.log` - Log files
+- ❌ `logs/` - Log directory
+- ❌ `*.db` - SQLite databases
+- ❌ `*.sqlite` - SQLite files
+- ❌ `celerybeat-schedule` - Celery schedule
+- ❌ `nvd_checkpoint.txt` - Runtime checkpoints
 
 ### **Generated Files**
-- ❌ `__pycache__/` - Python Cache
+- ❌ `__pycache__/` - Python cache
 - ❌ `*.pyc` - Compiled Python
-- ❌ `.pytest_cache/` - Pytest Cache
-- ❌ `htmlcov/` - Coverage Reports
-- ❌ `.coverage` - Coverage Data
-- ❌ `frontend/.next/` - Next.js Build
-- ❌ `frontend/node_modules/` - NPM Packages
+- ❌ `.pytest_cache/` - Pytest cache
+- ❌ `htmlcov/` - Coverage reports
+- ❌ `.coverage` - Coverage data
+- ❌ `frontend/.next/` - Next.js build
+- ❌ `frontend/node_modules/` - NPM packages
 
 ### **Development**
-- ❌ `.vscode/` - VS Code Settings
-- ❌ `.idea/` - IntelliJ Settings
-- ❌ `venv/` - Virtual Environment
-- ❌ `env/` - Virtual Environment
+- ❌ `.vscode/` - VS Code settings
+- ❌ `.idea/` - IntelliJ settings
+- ❌ `venv/` - Virtual environment
+- ❌ `env/` - Virtual environment
 
 ### **Production Data**
-- ❌ `nginx/ssl/` - SSL Certificates
-- ❌ `nginx/cache/` - Nginx Cache
-- ❌ `backups/` - Database Backups
-- ❌ `*.sql.gz` - Backup Files
-- ❌ `prometheus_data/` - Monitoring Data
-- ❌ `grafana_data/` - Dashboard Data
+- ❌ `nginx/ssl/` - SSL certificates
+- ❌ `nginx/cache/` - Nginx cache
+- ❌ `backups/` - Database backups
+- ❌ `*.sql.gz` - Backup files
+- ❌ `prometheus_data/` - Monitoring data
+- ❌ `grafana_data/` - Dashboard data
 
 ### **Personal Files**
-- ❌ `*.csv` - Data Files
-- ❌ `*.ndjson` - Data Files
-- ❌ `out/` - Output Directory
-- ❌ `tmp/` - Temporary Files
-- ❌ `.DS_Store` - macOS Files
-- ❌ `Thumbs.db` - Windows Files
+- ❌ `*.csv` - Data files
+- ❌ `*.ndjson` - Data files
+- ❌ `out/` - Output directory
+- ❌ `tmp/` - Temporary files
+- ❌ `.DS_Store` - macOS files
+- ❌ `Thumbs.db` - Windows files
 
 ---
 
-## 🔍 Vor dem Commit prüfen
+## 🔍 Check Before Commit
 
 ### **Checklist:**
 ```bash
-# 1. Keine Secrets im Code?
+# 1. No secrets in code?
 git diff | grep -i "password\|secret\|api_key\|token"
 
-# 2. .gitignore aktuell?
+# 2. .gitignore up to date?
 git status
 
-# 3. Nur relevante Dateien?
-git add -p  # Interaktiv hinzufügen
+# 3. Only relevant files?
+git add -p  # Interactive add
 
-# 4. Sinnvolle Commit Message?
+# 4. Meaningful commit message?
 git commit -m "feat: Add production deployment configuration"
 ```
 
 ---
 
-## 📋 Empfohlene Commit-Struktur
+## 📋 Recommended Commit Structure
 
 ### **Commit Message Format:**
 ```
@@ -130,15 +130,15 @@ git commit -m "feat: Add production deployment configuration"
 ```
 
 ### **Types:**
-- `feat:` - Neues Feature
-- `fix:` - Bug Fix
-- `docs:` - Dokumentation
-- `style:` - Formatierung
-- `refactor:` - Code Refactoring
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation
+- `style:` - Formatting
+- `refactor:` - Code refactoring
 - `test:` - Tests
 - `chore:` - Maintenance
 
-### **Beispiele:**
+### **Examples:**
 ```bash
 git commit -m "feat: Add Redis-based rate limiting"
 git commit -m "docs: Update deployment guide with Hetzner setup"
@@ -149,64 +149,64 @@ git commit -m "chore: Update .gitignore for production files"
 
 ---
 
-## 🚨 Wichtige Regeln
+## 🚨 Important Rules
 
-### **NIEMALS committen:**
-1. ❌ Passwörter oder API Keys
-2. ❌ Private SSL Certificates
-3. ❌ Production Database Dumps
-4. ❌ User Data oder PII
-5. ❌ Large Binary Files (>10MB)
+### **NEVER commit:**
+1. ❌ Passwords or API keys
+2. ❌ Private SSL certificates
+3. ❌ Production database dumps
+4. ❌ User data or PII
+5. ❌ Large binary files (>10MB)
 
-### **IMMER committen:**
-1. ✅ Code Changes
-2. ✅ Documentation Updates
-3. ✅ Configuration Templates
-4. ✅ Test Files
-5. ✅ Migration Scripts
+### **ALWAYS commit:**
+1. ✅ Code changes
+2. ✅ Documentation updates
+3. ✅ Configuration templates
+4. ✅ Test files
+5. ✅ Migration scripts
 
 ---
 
 ## 🔐 Secrets Management
 
-### **Für Development:**
+### **For Development:**
 ```bash
-# .env.example (im Repo)
+# .env.example (in repo)
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 API_KEY=your_api_key_here
 
-# .env (NICHT im Repo)
+# .env (NOT in repo)
 DATABASE_URL=postgresql://real_user:real_pass@localhost:5432/openthreat
 API_KEY=sk-1234567890abcdef
 ```
 
-### **Für Production:**
+### **For Production:**
 ```bash
-# Secrets in Environment Variables (Server)
+# Secrets in environment variables (server)
 export DATABASE_URL="postgresql://..."
 export API_KEY="sk-..."
 
-# Oder Docker Secrets
+# Or Docker secrets
 docker secret create db_password /path/to/password.txt
 ```
 
 ---
 
-## 📊 Repository Struktur (Clean)
+## 📊 Repository Structure (Clean)
 
 ```
 OpenThreat/
 ├── .github/              # GitHub Actions (optional)
-├── backend/              # Backend Code
-├── frontend/             # Frontend Code
+├── backend/              # Backend code
+├── frontend/             # Frontend code
 ├── tests/                # Tests
 ├── docs/                 # Documentation
 ├── alembic/              # Migrations
 ├── nginx/
-│   └── nginx.conf        # Nginx Config
+│   └── nginx.conf        # Nginx config
 ├── .env.example          # Template
-├── .gitignore            # Ignore Rules
-├── docker-compose.yml    # Dev Setup
+├── .gitignore            # Ignore rules
+├── docker-compose.yml    # Dev setup
 ├── docker-compose.prod.yml
 ├── Dockerfile.prod
 ├── requirements.txt
@@ -224,13 +224,13 @@ OpenThreat/
 
 ### **Check before commit:**
 ```bash
-# Was wird committed?
+# What will be committed?
 git status
 
-# Diff anzeigen
+# Show diff
 git diff
 
-# Nur bestimmte Dateien
+# Only specific files
 git add backend/main.py
 git add docs/DEPLOYMENT.md
 
@@ -241,14 +241,14 @@ git commit -m "feat: Add deployment configuration"
 git push origin main
 ```
 
-### **Secrets aus History entfernen:**
+### **Remove secrets from history:**
 ```bash
-# Falls versehentlich committed
+# If accidentally committed
 git filter-branch --force --index-filter \
   "git rm --cached --ignore-unmatch .env" \
   --prune-empty --tag-name-filter cat -- --all
 
-# Force push (VORSICHT!)
+# Force push (CAUTION!)
 git push origin --force --all
 ```
 
@@ -256,22 +256,22 @@ git push origin --force --all
 
 ## 🎯 Best Practices
 
-1. **Kleine, fokussierte Commits**
-   - Ein Feature/Fix pro Commit
-   - Klare Commit Messages
+1. **Small, focused commits**
+   - One feature/fix per commit
+   - Clear commit messages
 
-2. **Branch Strategy**
+2. **Branch strategy**
    - `main` - Production
    - `develop` - Development
    - `feature/*` - Features
-   - `fix/*` - Bug Fixes
+   - `fix/*` - Bug fixes
 
-3. **Pull Requests**
-   - Code Review vor Merge
-   - Tests müssen passen
-   - Documentation aktualisiert
+3. **Pull requests**
+   - Code review before merge
+   - Tests must pass
+   - Documentation updated
 
-4. **Tags für Releases**
+4. **Tags for releases**
    ```bash
    git tag -a v1.0.0 -m "Release v1.0.0"
    git push origin v1.0.0
@@ -279,12 +279,12 @@ git push origin --force --all
 
 ---
 
-## 📧 Fragen?
+## 📧 Questions?
 
-Bei Unsicherheiten:
-- Prüfe `.gitignore`
-- Frage im Team
-- Lieber nicht committen als Secrets leaken!
+If unsure:
+- Check `.gitignore`
+- Ask in team
+- Better not commit than leak secrets!
 
 **Email:** hoodinformatik@gmail.com
 **GitHub:** https://github.com/hoodinformatik/OpenThreat

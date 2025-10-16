@@ -1,116 +1,116 @@
 # 🚀 CI/CD Setup Guide
 
-## Übersicht
+## Overview
 
-OpenThreat nutzt GitHub Actions für:
-- ✅ Automatische Tests bei jedem Push
-- ✅ Code Quality Checks
-- ✅ Security Scanning
-- ✅ Automatisches Deployment
+OpenThreat uses GitHub Actions for:
+- ✅ Automatic tests on every push
+- ✅ Code quality checks
+- ✅ Security scanning
+- ✅ Automatic deployment
 
 ---
 
 ## 📋 Workflows
 
 ### 1. **CI Pipeline** (`ci.yml`)
-Läuft bei jedem Push/PR auf `main` oder `develop`
+Runs on every push/PR to `main` or `develop`
 
-**Was wird getestet:**
-- ✅ Python Tests (pytest)
-- ✅ Code Coverage (>50%)
+**What is tested:**
+- ✅ Python tests (pytest)
+- ✅ Code coverage (>50%)
 - ✅ Linting (flake8, black, isort)
-- ✅ Security Scan (Trivy)
-- ✅ Docker Build
+- ✅ Security scan (Trivy)
+- ✅ Docker build
 
-**Dauer:** ~5-10 Minuten
+**Duration:** ~5-10 minutes
 
 ### 2. **Deploy Pipeline** (`deploy.yml`)
-Läuft bei Push auf `main` oder manuell
+Runs on push to `main` or manually
 
-**Was passiert:**
-- ✅ SSH zum Server
-- ✅ Git Pull
-- ✅ Docker Rebuild
-- ✅ Database Migration
-- ✅ Health Check
+**What happens:**
+- ✅ SSH to server
+- ✅ Git pull
+- ✅ Docker rebuild
+- ✅ Database migration
+- ✅ Health check
 
-**Dauer:** ~3-5 Minuten
-
----
-
-## 🔧 Setup auf GitHub
-
-### Schritt 1: Repository Secrets einrichten
-
-Gehe zu: **Settings → Secrets and variables → Actions**
-
-Erstelle folgende Secrets:
-
-| Secret Name | Beschreibung | Beispiel |
-|-------------|--------------|----------|
-| `SSH_PRIVATE_KEY` | Private SSH Key für Server | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `SERVER_IP` | Server IP Adresse | `123.45.67.89` |
-| `SERVER_USER` | SSH Username | `openthreat` |
+**Duration:** ~3-5 minutes
 
 ---
 
-### Schritt 2: SSH Key generieren
+## 🔧 Setup on GitHub
 
-Auf deinem **lokalen Computer**:
+### Step 1: Configure Repository Secrets
+
+Go to: **Settings → Secrets and variables → Actions**
+
+Create the following secrets:
+
+| Secret Name | Description | Example |
+|-------------|-------------|---------|
+| `SSH_PRIVATE_KEY` | Private SSH key for server | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+| `SERVER_IP` | Server IP address | `123.45.67.89` |
+| `SERVER_USER` | SSH username | `openthreat` |
+
+---
+
+### Step 2: Generate SSH Key
+
+On your **local computer**:
 
 ```bash
-# SSH Key generieren
+# Generate SSH key
 ssh-keygen -t ed25519 -C "github-actions@openthreat.io" -f ~/.ssh/openthreat_deploy
 
-# Public Key auf Server kopieren
+# Copy public key to server
 ssh-copy-id -i ~/.ssh/openthreat_deploy.pub openthreat@your-server-ip
 
-# Private Key anzeigen (für GitHub Secret)
+# Display private key (for GitHub Secret)
 cat ~/.ssh/openthreat_deploy
 ```
 
-**Kopiere den gesamten Private Key** (inkl. `-----BEGIN` und `-----END`) in GitHub Secret `SSH_PRIVATE_KEY`
+**Copy the entire private key** (including `-----BEGIN` and `-----END`) to GitHub Secret `SSH_PRIVATE_KEY`
 
 ---
 
-### Schritt 3: Server vorbereiten
+### Step 3: Prepare Server
 
-Auf dem **Server**:
+On the **server**:
 
 ```bash
-# User erstellen
+# Create user
 sudo adduser openthreat
 sudo usermod -aG docker openthreat
 
-# Repository clonen
+# Clone repository
 su - openthreat
 git clone https://github.com/hoodinformatik/OpenThreat.git
 cd OpenThreat
 
-# .env erstellen
+# Create .env
 cp .env.production.example .env
-nano .env  # Passwörter eintragen
+nano .env  # Enter passwords
 
-# Erster Deploy (manuell)
+# First deploy (manual)
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ---
 
-### Schritt 4: GitHub Actions aktivieren
+### Step 4: Activate GitHub Actions
 
-1. **Push Code zu GitHub:**
+1. **Push code to GitHub:**
 ```bash
 git add .
 git commit -m "feat: Add CI/CD pipeline"
 git push origin main
 ```
 
-2. **Workflow läuft automatisch**
-   - Gehe zu: **Actions** Tab auf GitHub
-   - Sieh den Workflow laufen
+2. **Workflow runs automatically**
+   - Go to: **Actions** tab on GitHub
+   - Watch the workflow run
 
-3. **Badge im README** (optional):
+3. **Badge in README** (optional):
 ```markdown
 ![CI/CD](https://github.com/hoodinformatik/OpenThreat/workflows/CI%2FCD%20Pipeline/badge.svg)
 ```
@@ -155,32 +155,32 @@ jobs:
 
 ---
 
-## 🎯 Verwendung
+## 🎯 Usage
 
-### Automatisches Deployment
+### Automatic Deployment
 
-**Bei jedem Push auf `main`:**
+**On every push to `main`:**
 ```bash
 git add .
 git commit -m "feat: New feature"
 git push origin main
-# → Deployment läuft automatisch
+# → Deployment runs automatically
 ```
 
-### Manuelles Deployment
+### Manual Deployment
 
-1. Gehe zu **Actions** Tab
-2. Wähle **Deploy to Production**
-3. Klicke **Run workflow**
-4. Wähle Branch (z.B. `main`)
-5. Klicke **Run workflow**
+1. Go to **Actions** tab
+2. Select **Deploy to Production**
+3. Click **Run workflow**
+4. Select branch (e.g. `main`)
+5. Click **Run workflow**
 
-### Deployment mit Tag
+### Deployment with Tag
 
 ```bash
 git tag -a v1.0.0 -m "Release v1.0.0"
 git push origin v1.0.0
-# → Deployment läuft automatisch
+# → Deployment runs automatically
 ```
 
 ---
@@ -188,16 +188,16 @@ git push origin v1.0.0
 ## 🛡️ Security Best Practices
 
 ### ✅ DO:
-- ✅ Secrets in GitHub Secrets speichern
-- ✅ SSH Keys mit Passphrase schützen
-- ✅ Regelmäßig Keys rotieren
-- ✅ Nur notwendige Permissions
+- ✅ Store secrets in GitHub Secrets
+- ✅ Protect SSH keys with passphrase
+- ✅ Rotate keys regularly
+- ✅ Only necessary permissions
 
 ### ❌ DON'T:
-- ❌ Secrets im Code committen
-- ❌ Private Keys teilen
-- ❌ Root User für Deployment
-- ❌ Passwörter in Logs
+- ❌ Commit secrets in code
+- ❌ Share private keys
+- ❌ Use root user for deployment
+- ❌ Log passwords
 
 ---
 
@@ -205,26 +205,26 @@ git push origin v1.0.0
 
 ### GitHub Actions Logs
 
-**Logs anzeigen:**
-1. Gehe zu **Actions** Tab
-2. Klicke auf Workflow Run
-3. Klicke auf Job
-4. Sieh detaillierte Logs
+**Show logs:**
+1. Go to **Actions** tab
+2. Click on workflow run
+3. Click on job
+4. See detailed logs
 
 ### Server Logs
 
 ```bash
-# SSH zum Server
+# SSH to server
 ssh openthreat@your-server-ip
 
-# Docker Logs
+# Docker logs
 cd OpenThreat
 docker-compose -f docker-compose.prod.yml logs -f
 
-# Nur Backend
+# Backend only
 docker-compose -f docker-compose.prod.yml logs -f backend
 
-# Letzte 100 Zeilen
+# Last 100 lines
 docker-compose -f docker-compose.prod.yml logs --tail=100
 ```
 
@@ -234,50 +234,50 @@ docker-compose -f docker-compose.prod.yml logs --tail=100
 
 ### Problem: SSH Connection Failed
 
-**Lösung:**
+**Solution:**
 ```bash
-# Auf lokalem Computer
+# On local computer
 ssh -i ~/.ssh/openthreat_deploy openthreat@your-server-ip
 
-# Wenn das funktioniert, ist der Key OK
-# Wenn nicht, prüfe:
+# If this works, the key is OK
+# If not, check:
 chmod 600 ~/.ssh/openthreat_deploy
 ```
 
 ### Problem: Docker Build Failed
 
-**Lösung:**
+**Solution:**
 ```bash
-# Auf Server
+# On server
 docker-compose -f docker-compose.prod.yml build --no-cache
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ### Problem: Health Check Failed
 
-**Lösung:**
+**Solution:**
 ```bash
-# Prüfe ob Backend läuft
+# Check if backend is running
 curl http://localhost/health
 
-# Prüfe Docker Status
+# Check Docker status
 docker-compose -f docker-compose.prod.yml ps
 
-# Prüfe Logs
+# Check logs
 docker-compose -f docker-compose.prod.yml logs backend
 ```
 
-### Problem: Tests schlagen fehl
+### Problem: Tests Fail
 
-**Lösung:**
+**Solution:**
 ```bash
-# Lokal testen
+# Test locally
 pytest tests/ -v
 
-# Bestimmten Test
+# Specific test
 pytest tests/test_api_vulnerabilities.py -v
 
-# Mit Coverage
+# With coverage
 pytest --cov=backend
 ```
 
@@ -285,7 +285,7 @@ pytest --cov=backend
 
 ## 🚀 Advanced: Multi-Environment
 
-### Environments einrichten
+### Configure Environments
 
 **GitHub Settings → Environments:**
 
@@ -298,7 +298,7 @@ pytest --cov=backend
    - URL: `https://openthreat.io`
    - Protection: Require approval
 
-### Workflow anpassen
+### Customize Workflow
 
 ```yaml
 jobs:
@@ -315,7 +315,7 @@ jobs:
 
 ---
 
-## 📈 Performance Optimierung
+## 📈 Performance Optimization
 
 ### Docker Layer Caching
 
@@ -341,41 +341,41 @@ jobs:
 
 ## ✅ Checklist
 
-### Vor dem ersten Deployment:
+### Before first deployment:
 
-- [ ] GitHub Secrets eingerichtet
-- [ ] SSH Key auf Server
-- [ ] Server vorbereitet
-- [ ] `.env` auf Server konfiguriert
-- [ ] Erster manueller Deploy erfolgreich
-- [ ] Health Check funktioniert
+- [ ] GitHub Secrets configured
+- [ ] SSH key on server
+- [ ] Server prepared
+- [ ] `.env` configured on server
+- [ ] First manual deploy successful
+- [ ] Health check works
 
-### Nach jedem Deployment:
+### After each deployment:
 
-- [ ] Health Check passed
-- [ ] Logs prüfen
-- [ ] Frontend erreichbar
-- [ ] API funktioniert
-- [ ] Database Migration erfolgreich
+- [ ] Health check passed
+- [ ] Check logs
+- [ ] Frontend reachable
+- [ ] API works
+- [ ] Database migration successful
 
 ---
 
 ## 📧 Support
 
-Bei Problemen:
+For issues:
 - **GitHub Issues:** https://github.com/hoodinformatik/OpenThreat/issues
 - **Email:** hoodinformatik@gmail.com
 
 ---
 
-## 🎉 Fertig!
+## 🎉 Done!
 
-**Dein CI/CD Pipeline ist bereit!**
+**Your CI/CD pipeline is ready!**
 
-Jeder Push auf `main` wird automatisch:
-- ✅ Getestet
-- ✅ Gescannt
-- ✅ Deployed
-- ✅ Verifiziert
+Every push to `main` will automatically:
+- ✅ Be tested
+- ✅ Be scanned
+- ✅ Be deployed
+- ✅ Be verified
 
 **Happy Deploying! 🚀**
