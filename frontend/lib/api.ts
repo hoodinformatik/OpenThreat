@@ -26,7 +26,9 @@ export interface VulnerabilityDetail extends Vulnerability {
   products?: string[];
   references?: Array<{
     url: string;
-    type: string;
+    type?: string;
+    source?: string;
+    title?: string;
     tags?: string[];
   }>;
   source_tags?: string[];

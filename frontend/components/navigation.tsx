@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, Search, BarChart3, Rss, Info } from "lucide-react";
+import { Shield, Search, BarChart3, Rss, Info, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navigation() {
@@ -12,6 +12,7 @@ export function Navigation() {
     { href: "/", label: "Dashboard", icon: BarChart3 },
     { href: "/vulnerabilities", label: "Vulnerabilities", icon: Shield },
     { href: "/search", label: "Search", icon: Search },
+    { href: "/bsi-advisories", label: "BSI", icon: Flag },
     { href: "/feeds", label: "RSS Feeds", icon: Rss },
     { href: "/about", label: "About", icon: Info },
   ];

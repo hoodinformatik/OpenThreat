@@ -300,7 +300,15 @@ OpenThreat/
    - Update Strategy: Daily refresh
    - Frequency: Daily at 06:00 UTC
 
-4. **VulnCheck KEV** ⏳
+4. **BSI CERT-Bund (German CERT)** ✅
+   - German security advisories with CVE references
+   - Method: RSS feed parsing
+   - Update Strategy: Daily enrichment
+   - Frequency: Daily at 08:00 UTC
+   - Implementation: `backend/services/bsi_cert_service.py`
+   - Provides: German descriptions, severity ratings, official recommendations
+
+5. **VulnCheck KEV** ⏳
    - Extended exploitation intelligence
    - Requires API key (free tier available)
    - Update Strategy: Daily sync

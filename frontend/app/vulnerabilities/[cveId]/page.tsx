@@ -80,6 +80,11 @@ export default async function VulnerabilityDetailPage({
                   Exploited in Wild
                 </Badge>
               )}
+              {vuln.sources?.includes("bsi_cert") && (
+                <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                  🇩🇪 BSI CERT
+                </Badge>
+              )}
             </div>
             <h2 className="text-xl text-gray-700">{vuln.title}</h2>
           </div>
@@ -358,15 +363,18 @@ export default async function VulnerabilityDetailPage({
                     >
                       {ref.url}
                     </a>
-                    {ref.tags && ref.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {ref.tags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {ref.source === "bsi_cert" && (
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
+                          🇩🇪 BSI CERT-Bund
+                        </Badge>
+                      )}
+                      {ref.tags && ref.tags.length > 0 && ref.tags.map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}

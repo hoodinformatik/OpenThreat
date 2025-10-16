@@ -48,6 +48,13 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute="*/15"),  # Every 15 minutes
     },
     
+    # Data Fetching Tasks
+    # Fetch BSI CERT-Bund advisories daily at 08:00 UTC
+    "fetch-bsi-cert": {
+        "task": "tasks.fetch_bsi_cert",
+        "schedule": crontab(minute=0, hour=8),  # Daily at 08:00 UTC
+    },
+    
     # LLM Processing Tasks
     # Process new CVEs every 5 minutes
     "process-new-cves": {
