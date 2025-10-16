@@ -75,3 +75,31 @@ frontend/.vercel/
 frontend/.env*.local
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+coverage.xml
+*.coveragerc
+
+# Production secrets - NEVER commit!
+.env.production
+nginx/ssl/
+nginx/cache/
+
+# Deployment
+*.pem
+*.key
+*.crt
+
+# Database backups
+*.sql.gz
+*.dump
+backups/
+
+# Monitoring data
+prometheus_data/
+grafana_data/
