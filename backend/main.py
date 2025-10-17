@@ -14,7 +14,10 @@ from .models import Base
 from . import api
 from .config.logging_config import setup_logging
 from .utils.error_handlers import register_error_handlers
-from .middleware.rate_limit import rate_limit_middleware
+# Use Redis-based rate limiting for multi-replica support
+from .middleware.redis_rate_limit import redis_rate_limit_middleware
+# CSRF Protection
+from .middleware.csrf_protect import csrf_protect_middleware
 
 # Setup logging
 setup_logging(
@@ -42,12 +45,16 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # Explicit methods
+    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token", "X-Request-ID"],  # Explicit headers
+    expose_headers=["X-CSRF-Token", "X-Request-ID", "X-RateLimit-Limit-Minute", "X-RateLimit-Remaining-Minute"],
 )
 
-# Rate limiting middleware
-app.middleware("http")(rate_limit_middleware)
+# CSRF Protection middleware (must be before rate limiting)
+app.middleware("http")(csrf_protect_middleware)
+
+# Rate limiting middleware (Redis-based for distributed systems)
+app.middleware("http")(redis_rate_limit_middleware)
 
 # Metrics middleware
 from .middleware.metrics import metrics_middleware, metrics_endpoint
@@ -57,10 +64,11 @@ app.middleware("http")(metrics_middleware)
 app.add_api_route("/metrics", metrics_endpoint, methods=["GET"], include_in_schema=False)
 
 # Include routers
-from .api import vulnerabilities, stats, search, health, feeds, tasks
+from .api import vulnerabilities, stats, search, health, feeds, tasks, csrf
 from .api.v1 import llm, data_sources
 
 app.include_router(health.router, tags=["Health"])
+app.include_router(csrf.router, prefix="/api/v1", tags=["Security"])
 app.include_router(vulnerabilities.router, prefix="/api/v1", tags=["Vulnerabilities"])
 app.include_router(stats.router, prefix="/api/v1", tags=["Statistics"])
 app.include_router(search.router, prefix="/api/v1", tags=["Search"])
@@ -94,6 +102,10 @@ async def startup_event():
     logger.info(f"📊 Database: {os.getenv('DATABASE_URL', 'Not configured')}")
     logger.info(f"🌐 CORS Origins: {allowed_origins}")
     logger.info(f"📝 Log Level: {os.getenv('LOG_LEVEL', 'INFO')}")
+    logger.info(f"🛡️  CSRF Protection: Enabled")
+    logger.info(f"🚦 Rate Limiting: Redis-based (distributed)")
+    logger.info(f"   - Per minute: {os.getenv('RATE_LIMIT_PER_MINUTE', '60')}")
+    logger.info(f"   - Per hour: {os.getenv('RATE_LIMIT_PER_HOUR', '1000')}")
 
 
 @app.on_event("shutdown")

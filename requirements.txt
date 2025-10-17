@@ -20,6 +20,10 @@ alembic==1.14.0
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 
+# Security
+fastapi-csrf-protect==0.3.4
+itsdangerous==2.2.0
+
 # Background tasks
 celery==5.4.0
 redis==5.2.1
