@@ -5,6 +5,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from datetime import datetime, timedelta, timezone
+import redis
+import json
+import os
 
 from ..database import get_db
 from ..models import Vulnerability, IngestionRun
@@ -12,11 +15,17 @@ from ..schemas import StatsResponse
 
 router = APIRouter()
 
+# Redis connection for caching
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+STATS_CACHE_KEY = "dashboard:stats"
+STATS_CACHE_TTL = 300  # 5 minutes
+
 
 @router.get("/stats", response_model=StatsResponse)
 async def get_statistics(db: Session = Depends(get_db)):
     """
-    Get overall statistics for the dashboard.
+    Get overall statistics for the dashboard (cached for 5 minutes).
     
     Returns:
     - Total vulnerabilities
@@ -25,60 +34,86 @@ async def get_statistics(db: Session = Depends(get_db)):
     - Recent updates count
     - Last update timestamp
     """
-    # Base query - only CVEs
-    base_query = db.query(Vulnerability).filter(Vulnerability.cve_id.like('CVE-%'))
+    # Try to get from cache first
+    try:
+        cached = redis_client.get(STATS_CACHE_KEY)
+        if cached:
+            data = json.loads(cached)
+            return StatsResponse(**data)
+    except Exception as e:
+        print(f"Cache read error: {e}")
     
-    # Total vulnerabilities
-    total = base_query.count() or 0
-    
-    # Exploited vulnerabilities
-    exploited = base_query.filter(
-        Vulnerability.exploited_in_the_wild == True
-    ).count() or 0
-    
-    # Critical vulnerabilities
-    critical = base_query.filter(
-        Vulnerability.severity == "CRITICAL"
-    ).count() or 0
-    
-    # High vulnerabilities
-    high = base_query.filter(
-        Vulnerability.severity == "HIGH"
-    ).count() or 0
-    
-    # By severity
-    severity_counts = db.query(
-        Vulnerability.severity,
-        func.count(Vulnerability.id)
-    ).filter(Vulnerability.cve_id.like('CVE-%')).group_by(Vulnerability.severity).all()
-    
-    by_severity = {
-        severity or "UNKNOWN": count
-        for severity, count in severity_counts
-    }
-    
-    # Recent updates (last 7 days)
-    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
-    recent = base_query.filter(
-        Vulnerability.updated_at >= cutoff
-    ).count() or 0
-    
-    # Last update timestamp
-    last_run = db.query(IngestionRun).filter(
-        IngestionRun.status == "success"
-    ).order_by(desc(IngestionRun.completed_at)).first()
-    
-    last_update = last_run.completed_at if last_run else None
-    
-    return StatsResponse(
-        total_vulnerabilities=total,
-        exploited_vulnerabilities=exploited,
-        critical_vulnerabilities=critical,
-        high_vulnerabilities=high,
-        by_severity=by_severity,
-        recent_updates=recent,
-        last_update=last_update
-    )
+    # Cache miss - calculate stats with optimized single query
+    try:
+        # Use a single aggregation query instead of multiple COUNT queries
+        stats_query = db.query(
+            func.count(Vulnerability.id).label('total'),
+            func.count(Vulnerability.id).filter(Vulnerability.exploited_in_the_wild == True).label('exploited'),
+            func.count(Vulnerability.id).filter(Vulnerability.severity == 'CRITICAL').label('critical'),
+            func.count(Vulnerability.id).filter(Vulnerability.severity == 'HIGH').label('high'),
+            func.count(Vulnerability.id).filter(
+                Vulnerability.updated_at >= datetime.now(timezone.utc) - timedelta(days=7)
+            ).label('recent')
+        ).filter(Vulnerability.cve_id.like('CVE-%')).one()
+        
+        total = stats_query.total or 0
+        exploited = stats_query.exploited or 0
+        critical = stats_query.critical or 0
+        high = stats_query.high or 0
+        recent = stats_query.recent or 0
+        
+        # Severity breakdown - separate query but still fast
+        severity_counts = db.query(
+            Vulnerability.severity,
+            func.count(Vulnerability.id)
+        ).filter(Vulnerability.cve_id.like('CVE-%')).group_by(Vulnerability.severity).all()
+        
+        by_severity = {
+            severity or "UNKNOWN": count
+            for severity, count in severity_counts
+        }
+        
+        # Last update timestamp
+        last_run = db.query(IngestionRun).filter(
+            IngestionRun.status == "success"
+        ).order_by(desc(IngestionRun.completed_at)).first()
+        
+        last_update = last_run.completed_at if last_run else None
+        
+        result = StatsResponse(
+            total_vulnerabilities=total,
+            exploited_vulnerabilities=exploited,
+            critical_vulnerabilities=critical,
+            high_vulnerabilities=high,
+            by_severity=by_severity,
+            recent_updates=recent,
+            last_update=last_update
+        )
+        
+        # Cache the result
+        try:
+            redis_client.setex(
+                STATS_CACHE_KEY,
+                STATS_CACHE_TTL,
+                json.dumps(result.model_dump(), default=str)
+            )
+        except Exception as e:
+            print(f"Cache write error: {e}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"Stats calculation error: {e}")
+        # Return empty stats on error
+        return StatsResponse(
+            total_vulnerabilities=0,
+            exploited_vulnerabilities=0,
+            critical_vulnerabilities=0,
+            high_vulnerabilities=0,
+            by_severity={},
+            recent_updates=0,
+            last_update=None
+        )
 
 
 @router.get("/stats/top-vendors")

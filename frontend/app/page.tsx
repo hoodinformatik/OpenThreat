@@ -33,13 +33,7 @@ export default function HomePage() {
 
       console.log("Fetching from:", API_URL);
 
-      // Fetch stats
-      const statsRes = await fetch(`${API_URL}/api/v1/stats`);
-      const statsData = await statsRes.json();
-      console.log("Stats loaded:", statsData);
-      setStats(statsData);
-
-      // Fetch vulnerabilities with filters
+      // Fetch vulnerabilities params
       const params = new URLSearchParams({
         page_size: "20",
         sort_by: "published_at",
@@ -50,11 +44,22 @@ export default function HomePage() {
       if (exploited) params.append("exploited", exploited);
 
       const vulnsUrl = `${API_URL}/api/v1/vulnerabilities?${params}`;
-      console.log("Fetching vulnerabilities from:", vulnsUrl);
       
-      const vulnsRes = await fetch(vulnsUrl);
-      const vulnsData = await vulnsRes.json();
+      // Fetch both in parallel instead of sequentially
+      const [statsRes, vulnsRes] = await Promise.all([
+        fetch(`${API_URL}/api/v1/stats`),
+        fetch(vulnsUrl)
+      ]);
+
+      const [statsData, vulnsData] = await Promise.all([
+        statsRes.json(),
+        vulnsRes.json()
+      ]);
+
+      console.log("Stats loaded:", statsData);
       console.log("Vulnerabilities loaded:", vulnsData.items?.length, "items");
+      
+      setStats(statsData);
       setRecentVulns(vulnsData);
     } catch (error) {
       console.error("Failed to fetch data:", error);

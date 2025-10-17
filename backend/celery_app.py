@@ -61,23 +61,23 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.process_new_cves",
         "schedule": crontab(minute="*/5"),  # Every 5 minutes
     },
-    # Process high priority queue every 10 minutes
+    # Process high priority queue every 2 minutes with large batches
     "process-high-priority": {
         "task": "tasks.process_llm_queue",
-        "schedule": crontab(minute="*/10"),  # Every 10 minutes
-        "kwargs": {"batch_size": 10, "priority": "high"}
+        "schedule": crontab(minute="*/2"),  # Every 2 minutes
+        "kwargs": {"batch_size": 500, "priority": "high"}
     },
-    # Process medium priority queue every 30 minutes
+    # Process medium priority queue every 5 minutes with large batches
     "process-medium-priority": {
         "task": "tasks.process_llm_queue",
-        "schedule": crontab(minute="*/30"),  # Every 30 minutes
-        "kwargs": {"batch_size": 20, "priority": "medium"}
+        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+        "kwargs": {"batch_size": 500, "priority": "medium"}
     },
-    # Process low priority queue every 2 hours
+    # Process low priority queue every 10 minutes with large batches
     "process-low-priority": {
         "task": "tasks.process_llm_queue",
-        "schedule": crontab(minute=0, hour="*/2"),  # Every 2 hours
-        "kwargs": {"batch_size": 50, "priority": "low"}
+        "schedule": crontab(minute="*/10"),  # Every 10 minutes
+        "kwargs": {"batch_size": 1000, "priority": "low"}
     },
 }
 

@@ -79,7 +79,15 @@ docker-compose up -d
 ```bash
 pip install -r requirements.txt
 alembic upgrade head
-python scripts/fetch_nvd_complete.py
+
+# Populate database (choose one):
+# Option A: Recent CVEs only (fast, recommended for first run)
+python scripts/fetch_nvd_complete.py --recent --days 30
+
+# Option B: All CVEs (takes hours, run overnight)
+# python scripts/fetch_nvd_complete.py
+
+# Start backend
 python -m uvicorn backend.main:app --reload --port 8001
 ```
 
@@ -90,10 +98,91 @@ npm install
 npm run dev
 ```
 
-5. **Access the application**
+5. **Populate the database**
+```bash
+# Fetch recent CVEs (5-30 minutes)
+curl -X POST "http://localhost:8001/api/v1/data-sources/nvd/fetch-recent?days=30"
+
+# Fetch CISA KEV data (30 seconds)
+curl -X POST "http://localhost:8001/api/v1/data-sources/cisa-kev/fetch"
+
+# Check status
+curl "http://localhost:8001/api/v1/stats/overview"
+```
+
+6. **Access the application**
 - 🌐 **Frontend**: http://localhost:3000
 - 📚 **API Docs**: http://localhost:8001/docs
 - 🔌 **API**: http://localhost:8001
+
+## 📥 Populating the Database
+
+After setup, you need to fetch vulnerability data. You have **3 options**:
+
+### Option 1: API Endpoints (Recommended)
+
+Use the Swagger UI at `http://localhost:8001/docs`:
+
+1. Go to `/api/v1/data-sources/nvd/fetch-recent`
+2. Set `days=30` (fetches last 30 days)
+3. Click "Execute"
+4. Wait 5-30 minutes
+
+Or use curl:
+```bash
+# Fetch recent CVEs (fast)
+curl -X POST "http://localhost:8001/api/v1/data-sources/nvd/fetch-recent?days=30"
+
+# Fetch CISA KEV (marks exploited CVEs)
+curl -X POST "http://localhost:8001/api/v1/data-sources/cisa-kev/fetch"
+
+# Fetch BSI CERT (German descriptions)
+curl -X POST "http://localhost:8001/api/v1/data-sources/bsi-cert/fetch"
+```
+
+### Option 2: CLI Script
+
+```bash
+# Recent CVEs only (recommended)
+python scripts/fetch_nvd_complete.py --recent --days 30
+
+# All CVEs (300,000+, takes hours!)
+python scripts/fetch_nvd_complete.py
+
+# With API key (5x faster)
+export NVD_API_KEY=your_key_here
+python scripts/fetch_nvd_complete.py --recent --days 30
+```
+
+### Option 3: Docker Exec (for Production)
+
+If running in Docker:
+```bash
+# Execute script inside backend container
+docker compose exec backend python scripts/fetch_nvd_complete.py --recent --days 30
+```
+
+### Get NVD API Key (Optional but Recommended)
+
+- **Without key**: 10 requests/min → ~10-15 hours for all CVEs
+- **With key**: 50 requests/min → ~2-3 hours for all CVEs
+
+Get a free key at: https://nvd.nist.gov/developers/request-an-api-key
+
+Add to `.env`:
+```bash
+NVD_API_KEY=your_api_key_here
+```
+
+### Check Database Status
+
+```bash
+# Via API
+curl "http://localhost:8001/api/v1/stats/overview"
+
+# Via API (detailed)
+curl "http://localhost:8001/api/v1/data-sources/list"
+```
 
 ## 📊 Data Sources
 

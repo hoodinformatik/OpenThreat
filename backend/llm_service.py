@@ -5,6 +5,7 @@ Uses Ollama with a local LLM (e.g., Llama 3.2, Mistral) to process CVE data
 and generate plain-language summaries.
 """
 import logging
+import os
 from typing import Optional, Dict
 import ollama
 from datetime import datetime
@@ -15,22 +16,23 @@ logger = logging.getLogger(__name__)
 class LLMService:
     """Service for generating CVE summaries using local LLM."""
     
-    def __init__(self, model: str = "llama3.2:3b", enabled: bool = True):
+    def __init__(self, model: str = None, enabled: bool = True):
         """
         Initialize LLM service.
         
         Args:
-            model: Ollama model to use (default: llama3.2:3b)
+            model: Ollama model to use (default: from LLM_MODEL env or llama3.2:1b)
             enabled: Whether LLM processing is enabled
         """
-        self.model = model
+        # Get model from env or use provided model or default
+        self.model = model or os.getenv('LLM_MODEL', 'llama3.2:1b')
         self.enabled = enabled
         
         if enabled:
             try:
                 # Test if Ollama is available
                 ollama.list()
-                logger.info(f"LLM Service initialized with model: {model}")
+                logger.info(f"LLM Service initialized with model: {self.model}")
             except Exception as e:
                 logger.warning(f"Ollama not available: {e}. LLM features disabled.")
                 self.enabled = False
@@ -239,7 +241,7 @@ Generate ONLY the description:"""
 _llm_service = None
 
 
-def get_llm_service(model: str = "llama3.2:3b", enabled: bool = True) -> LLMService:
+def get_llm_service(model: str = None, enabled: bool = True) -> LLMService:
     """Get or create global LLM service instance."""
     global _llm_service
     if _llm_service is None:

@@ -27,13 +27,27 @@ out/
 .env
 .env.local
 .env*.local
+.env.backup
+.env.production
+.env.development
+.env.test
 *.env
 !.env.example
+!.env.production.example
 
-# API Keys and Secrets
+# API Keys and Secrets - CRITICAL!
 *_api_key.txt
 *_secret.txt
+*_token.txt
+*_password.txt
 nvd_checkpoint.txt
+secrets/
+.secrets/
+credentials/
+.credentials/
+*.credentials
+api_keys/
+.api_keys/
 
 # Docker
 docker-compose.override.yml
@@ -90,16 +104,47 @@ coverage.xml
 nginx/ssl/
 nginx/cache/
 
-# Deployment
+# Deployment & SSL Certificates - NEVER commit!
 *.pem
 *.key
 *.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+ssh_keys/
+.ssh/
 
-# Database backups
+# Database backups - may contain sensitive data!
+*.sql
 *.sql.gz
 *.dump
+*.bak
 backups/
+db_backups/
+postgres_data/
+# Allow init scripts
+!scripts/init-db.sql
+!backend/migrations/*.sql
 
 # Monitoring data
 prometheus_data/
 grafana_data/
+
+# LLM Processing logs (may contain sensitive CVE data)
+llm_processing.log
+processing_*.log
+
+# Docker volumes (contain persistent data)
+volumes/
+data/
+
+# Session files
+.session
+sessions/
+
+# Private configuration files
+config.private.yml
+config.local.yml
+settings.local.py

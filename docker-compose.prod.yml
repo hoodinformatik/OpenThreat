@@ -40,13 +40,15 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openthreat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openthreat}
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - OLLAMA_HOST=http://ollama:11434
     depends_on:
       - postgres
       - redis
+      - ollama
     restart: unless-stopped
     networks:
       - openthreat-network
@@ -63,6 +65,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-openthreat}
       - POSTGRES_USER=${POSTGRES_USER:-openthreat}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -72,7 +76,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 2G
+          memory: 1G
     command: >
       postgres
       -c shared_buffers=512MB
@@ -85,6 +89,8 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1000
+    ports:
+      - "6379:6379"
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -102,19 +108,23 @@ services:
       dockerfile: Dockerfile.prod
     command: celery -A backend.celery_app worker --loglevel=info --concurrency=2
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openthreat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openthreat}
       - REDIS_URL=redis://redis:6379
+      - OLLAMA_HOST=http://ollama:11434
+      - LLM_MODEL=llama3.2:1b
     depends_on:
       - postgres
       - redis
+      - ollama
     restart: unless-stopped
     networks:
       - openthreat-network
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '2.0'
+          memory: 1G
+      replicas: 2
 
   celery-beat:
     build:
@@ -122,7 +132,7 @@ services:
       dockerfile: Dockerfile.prod
     command: celery -A backend.celery_app beat --loglevel=info
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openthreat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openthreat}
       - REDIS_URL=redis://redis:6379
     depends_on:
       - postgres
@@ -136,10 +146,27 @@ services:
           cpus: '0.25'
           memory: 256M
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - openthreat-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+
 volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  ollama_data:
     driver: local
 
 networks:

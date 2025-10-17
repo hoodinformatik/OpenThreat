@@ -6,11 +6,29 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Database URL from environment or default to SQLite for development
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://openthreat:openthreat@localhost:5432/openthreat"
-)
+# Database URL from environment or auto-detect based on setup
+# Priority: 1. Environment variable, 2. Docker setup, 3. Local development
+def get_database_url():
+    """Get database URL with smart defaults for different environments."""
+    # If explicitly set, use that
+    if os.getenv("DATABASE_URL"):
+        return os.getenv("DATABASE_URL")
+    
+    # Check if running in Docker (common environment variables)
+    in_docker = (
+        os.path.exists('/.dockerenv') or 
+        os.getenv('DOCKER_CONTAINER') or
+        os.path.exists('/app')  # Common Docker workdir
+    )
+    
+    if in_docker:
+        # Docker setup: use service name 'postgres'
+        return "postgresql://openthreat:openthreat@postgres:5432/openthreat"
+    else:
+        # Local development: use localhost
+        return "postgresql://openthreat:openthreat@localhost:5432/openthreat"
+
+DATABASE_URL = get_database_url()
 
 # For SQLite fallback (development only)
 if DATABASE_URL.startswith("sqlite"):
