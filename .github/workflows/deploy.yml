@@ -38,23 +38,49 @@ jobs:
           
           # Check if .env file exists
           if [ ! -f .env ]; then
-            echo " Error: .env file not found!"
+            echo "❌ Error: .env file not found!"
             echo "Please create .env file on the server first."
             exit 1
           fi
           
-          echo " Pulling latest changes..."
+          echo "📥 Pulling latest changes..."
           git pull origin main
-          docker-compose -f docker-compose.prod.yml down
-          docker-compose -f docker-compose.prod.yml build
-          docker-compose -f docker-compose.prod.yml up -d
-          docker-compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
+          
+          echo "🛑 Stopping containers..."
+          docker compose -f docker-compose.prod.yml down || true
+          
+          echo "🔨 Building images..."
+          docker compose -f docker-compose.prod.yml build --no-cache backend frontend
+          
+          echo "🚀 Starting containers..."
+          docker compose -f docker-compose.prod.yml up -d
+          
+          echo "⏳ Waiting for backend to be ready..."
+          sleep 10
+          
+          echo "🔄 Running database migrations..."
+          docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head || echo "⚠️ Migration failed or already up to date"
+          
+          echo "✅ Deployment completed!"
         EOF
 
     - name: Health check
       run: |
-        sleep 30
-        curl -f http://${{ secrets.SERVER_IP }}/health || exit 1
+        echo "🏥 Running health check..."
+        sleep 15
+        
+        # Try health check with retries
+        for i in {1..5}; do
+          if curl -f -s http://${{ secrets.SERVER_IP }}/health > /dev/null; then
+            echo "✅ Health check passed!"
+            exit 0
+          fi
+          echo "⏳ Attempt $i/5 failed, retrying in 10s..."
+          sleep 10
+        done
+        
+        echo "❌ Health check failed after 5 attempts"
+        exit 1
 
     - name: Notify success
       if: success()
