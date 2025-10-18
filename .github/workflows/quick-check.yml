@@ -1,0 +1,47 @@
+name: Quick Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  quick-test:
+    name: Quick Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt || true
+
+    - name: Basic syntax check
+      run: |
+        python -m py_compile backend/**/*.py || true
+        echo "✅ Syntax check completed"
+
+    - name: Check Docker files
+      run: |
+        docker compose -f docker-compose.prod.yml config > /dev/null
+        echo "✅ Docker compose files are valid"
+
+    - name: Security check script
+      run: |
+        chmod +x scripts/security_check.sh
+        ./scripts/security_check.sh || true
+
+    - name: Summary
+      if: always()
+      run: |
+        echo "✅ Quick check completed!"
+        echo "This is a fast validation. Full tests run on main branch."

@@ -6,8 +6,9 @@
 
 A free and open-source platform for tracking CVEs and security threats
 
+[![CI/CD Pipeline](https://github.com/hoodinformatik/OpenThreat/actions/workflows/ci.yml/badge.svg)](https://github.com/hoodinformatik/OpenThreat/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Next.js](https://img.shields.io/badge/next.js-14-black.svg)](https://nextjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-16-blue.svg)](https://www.postgresql.org/)
 
