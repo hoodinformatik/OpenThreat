@@ -15,7 +15,7 @@ pytest-postgresql==5.0.0
 faker==20.1.0
 
 # Code quality
-black==23.12.1
+black==24.3.0
 flake8==6.1.0
 mypy==1.7.1
 isort==5.13.2
