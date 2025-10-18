@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Shield, Search, BarChart3, Rss, Info, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import UserMenu from "./user-menu";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -71,6 +72,7 @@ export function Navigation() {
                 />
               </svg>
             </a>
+            <UserMenu />
           </div>
         </div>
       </div>

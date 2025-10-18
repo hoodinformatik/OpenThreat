@@ -3,13 +3,58 @@ SQLAlchemy database models for OpenThreat.
 """
 from sqlalchemy import (
     Column, Integer, String, Text, Float, Boolean, DateTime, Date,
-    JSON, Index, ForeignKey, Table
+    JSON, Index, ForeignKey, Table, Enum as SQLEnum
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import enum
+import secrets
+import string
 
 from .database import Base
+
+
+# User roles enum
+class UserRole(str, enum.Enum):
+    """User role definitions."""
+    ADMIN = "admin"
+    ANALYST = "analyst"
+    VIEWER = "viewer"
+
+
+class User(Base):
+    """
+    User accounts for authentication and authorization.
+    """
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Authentication
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    
+    # Profile
+    full_name = Column(String(255), nullable=True)
+    role = Column(SQLEnum(UserRole, values_callable=lambda x: [e.value for e in x]), default=UserRole.VIEWER, nullable=False, index=True)
+    
+    # Status
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Security
+    failed_login_attempts = Column(Integer, default=0, nullable=False)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
+    
+    def __repr__(self):
+        return f"<User {self.username} ({self.email})>"
 
 
 # Association table for many-to-many relationship between vulnerabilities and techniques
@@ -218,3 +263,47 @@ class SearchCache(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
     hit_count = Column(Integer, default=0)
+
+
+class EmailVerification(Base):
+    """
+    Email verification codes for user registration and email changes.
+    """
+    __tablename__ = "email_verifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)  # Nullable for registration
+    email = Column(String(255), nullable=False, index=True)
+    code = Column(String(6), nullable=False)
+    
+    # Type: 'registration' or 'email_change'
+    verification_type = Column(String(20), nullable=False)
+    
+    # Status
+    is_used = Column(Boolean, default=False, nullable=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user = relationship("User", backref="email_verifications")
+    
+    @staticmethod
+    def generate_code() -> str:
+        """Generate a 6-digit verification code."""
+        return ''.join(secrets.choice(string.digits) for _ in range(6))
+    
+    @staticmethod
+    def get_expiry_time() -> datetime:
+        """Get expiry time (15 minutes from now)."""
+        return datetime.now(timezone.utc) + timedelta(minutes=15)
+    
+    def is_expired(self) -> bool:
+        """Check if code is expired."""
+        return datetime.now(timezone.utc) > self.expires_at
+    
+    def is_valid(self) -> bool:
+        """Check if code is valid (not used and not expired)."""
+        return not self.is_used and not self.is_expired()

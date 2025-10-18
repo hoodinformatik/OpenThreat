@@ -2,12 +2,14 @@
 API endpoints for LLM processing management.
 """
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 from typing import Optional
 
 from backend.database import get_db
 from backend.tasks.llm_tasks import process_cve_with_llm, process_llm_queue, get_llm_stats
+from backend.models import User, UserRole
+from backend.dependencies.auth import require_role
 
 router = APIRouter(prefix="/llm", tags=["LLM Processing"])
 
@@ -32,10 +34,12 @@ async def get_processing_stats():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/process/{cve_id}")
+@router.post("/process/{cve_id}", dependencies=[Depends(require_role(UserRole.ANALYST))])
 async def process_single_cve(cve_id: str):
     """
     Manually trigger LLM processing for a single CVE.
+    
+    **Requires:** ANALYST role or higher
     
     Args:
         cve_id: CVE ID to process
@@ -55,13 +59,15 @@ async def process_single_cve(cve_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/process/batch")
+@router.post("/process/batch", dependencies=[Depends(require_role(UserRole.ANALYST))])
 async def process_batch(
     batch_size: int = 10,
     priority: str = "high"
 ):
     """
     Manually trigger batch LLM processing.
+    
+    **Requires:** ANALYST role or higher
     
     Args:
         batch_size: Number of CVEs to process

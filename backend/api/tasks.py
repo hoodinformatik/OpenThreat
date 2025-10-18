@@ -1,7 +1,7 @@
 """
 Task management and monitoring endpoints.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from datetime import datetime
@@ -13,6 +13,8 @@ from ..tasks import (
     process_new_cves,
     get_llm_stats
 )
+from ..models import User, UserRole
+from ..dependencies.auth import require_role, optional_user
 
 router = APIRouter()
 
@@ -30,10 +32,12 @@ class TaskStatusResponse(BaseModel):
     error: Optional[str] = None
 
 
-@router.post("/tasks/process-new-cves", response_model=TaskResponse)
+@router.post("/tasks/process-new-cves", response_model=TaskResponse, dependencies=[Depends(require_role(UserRole.ANALYST))])
 async def trigger_new_cves_processing():
     """
     Manually trigger processing of new CVEs.
+    
+    **Requires:** ANALYST role or higher
     
     Processes CVEs added in the last hour with LLM.
     """
@@ -46,10 +50,12 @@ async def trigger_new_cves_processing():
     )
 
 
-@router.post("/tasks/process-llm-batch", response_model=TaskResponse)
+@router.post("/tasks/process-llm-batch", response_model=TaskResponse, dependencies=[Depends(require_role(UserRole.ANALYST))])
 async def trigger_llm_batch(batch_size: int = 10, priority: str = "high"):
     """
     Manually trigger batch LLM processing.
+    
+    **Requires:** ANALYST role or higher
     
     Args:
         batch_size: Number of CVEs to process (1-100)

@@ -2,11 +2,13 @@
 API endpoints for data source management.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 
 from backend.tasks.data_tasks import fetch_bsi_cert_task
 from backend.services.nvd_complete_service import get_nvd_service
+from backend.models import User, UserRole
+from backend.dependencies.auth import require_admin
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
@@ -16,10 +18,12 @@ router = APIRouter(prefix="/data-sources", tags=["Data Sources"])
 executor = ThreadPoolExecutor(max_workers=2)
 
 
-@router.post("/bsi-cert/fetch")
+@router.post("/bsi-cert/fetch", dependencies=[Depends(require_admin)])
 async def trigger_bsi_cert_fetch():
     """
     Manually trigger BSI CERT-Bund data fetch.
+    
+    **Requires:** ADMIN role
     
     This will:
     1. Fetch latest security advisories from BSI CERT-Bund
@@ -79,10 +83,12 @@ async def get_bsi_cert_status():
         db.close()
 
 
-@router.post("/nvd/fetch-all")
+@router.post("/nvd/fetch-all", dependencies=[Depends(require_admin)])
 async def trigger_nvd_fetch_all(start_year: int = 1999, end_year: int = None):
     """
     Trigger complete NVD database fetch.
+    
+    **Requires:** ADMIN role
     
     **Warning:** This will fetch ALL CVEs from NVD (300,000+) and may take several hours.
     
@@ -114,10 +120,12 @@ async def trigger_nvd_fetch_all(start_year: int = 1999, end_year: int = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/nvd/fetch-recent")
+@router.post("/nvd/fetch-recent", dependencies=[Depends(require_admin)])
 async def trigger_nvd_fetch_recent(days: int = 7):
     """
     Fetch CVEs modified in the last N days from NVD.
+    
+    **Requires:** ADMIN role
     
     This is much faster than fetching all CVEs and is useful for updates.
     
@@ -200,10 +208,12 @@ async def get_nvd_status():
         db.close()
 
 
-@router.post("/cisa-kev/fetch")
+@router.post("/cisa-kev/fetch", dependencies=[Depends(require_admin)])
 async def trigger_cisa_kev_fetch():
     """
     Fetch CISA Known Exploited Vulnerabilities catalog.
+    
+    **Requires:** ADMIN role
     
     This updates the exploited_in_the_wild flag for CVEs that are actively exploited.
     

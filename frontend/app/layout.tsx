@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/navigation";
+import { AuthProvider } from "@/lib/auth-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,35 +19,37 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="min-h-screen bg-gray-50">
-          <Navigation />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
-          <footer className="border-t mt-12 py-6 text-center text-sm text-gray-600">
-            <p>OpenThreat - Democratizing Threat Intelligence</p>
-            <p className="mt-1">
-              Data sources: CISA KEV, NVD, BSI CERT-Bund
-            </p>
-            <p className="mt-2">
-              <a 
-                href="https://github.com/hoodinformatik/OpenThreat" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700 hover:underline"
-              >
-                GitHub
-              </a>
-              {" · "}
-              <a 
-                href="mailto:hoodinformatik@gmail.com"
-                className="text-blue-600 hover:text-blue-700 hover:underline"
-              >
-                Contact
-              </a>
-            </p>
-          </footer>
-        </div>
+        <AuthProvider>
+          <div className="min-h-screen bg-gray-50">
+            <Navigation />
+            <main className="container mx-auto px-4 py-8">
+              {children}
+            </main>
+            <footer className="border-t mt-12 py-6 text-center text-sm text-gray-600">
+              <p>OpenThreat - Democratizing Threat Intelligence</p>
+              <p className="mt-1">
+                Data sources: CISA KEV, NVD, BSI CERT-Bund
+              </p>
+              <p className="mt-2">
+                <a 
+                  href="https://github.com/hoodinformatik/OpenThreat" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  GitHub
+                </a>
+                {" · "}
+                <a 
+                  href="mailto:hoodinformatik@gmail.com"
+                  className="text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  Contact
+                </a>
+              </p>
+            </footer>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

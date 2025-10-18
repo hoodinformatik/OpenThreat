@@ -64,11 +64,13 @@ app.middleware("http")(metrics_middleware)
 app.add_api_route("/metrics", metrics_endpoint, methods=["GET"], include_in_schema=False)
 
 # Include routers
-from .api import vulnerabilities, stats, search, health, feeds, tasks, csrf
+from .api import vulnerabilities, stats, search, health, feeds, tasks, csrf, auth, admin
 from .api.v1 import llm, data_sources
 
 app.include_router(health.router, tags=["Health"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(csrf.router, prefix="/api/v1", tags=["Security"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(vulnerabilities.router, prefix="/api/v1", tags=["Vulnerabilities"])
 app.include_router(stats.router, prefix="/api/v1", tags=["Statistics"])
 app.include_router(search.router, prefix="/api/v1", tags=["Search"])
