@@ -33,7 +33,17 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
         ssh $SERVER_USER@$SERVER_IP << 'EOF'
+          set -e  # Exit on error
           cd /home/openthreat/OpenThreat
+          
+          # Check if .env file exists
+          if [ ! -f .env ]; then
+            echo " Error: .env file not found!"
+            echo "Please create .env file on the server first."
+            exit 1
+          fi
+          
+          echo " Pulling latest changes..."
           git pull origin main
           docker-compose -f docker-compose.prod.yml down
           docker-compose -f docker-compose.prod.yml build
