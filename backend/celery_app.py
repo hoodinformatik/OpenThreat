@@ -4,9 +4,7 @@ Celery application for background tasks and scheduled jobs.
 import os
 from celery import Celery
 from celery.schedules import crontab
-
-# Get Redis URL from environment or use default
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+from backend.database import REDIS_URL
 
 # Create Celery app
 celery_app = Celery(

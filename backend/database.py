@@ -30,6 +30,28 @@ def get_database_url():
 
 DATABASE_URL = get_database_url()
 
+def get_redis_url():
+    """Get Redis URL with smart defaults for different environments."""
+    # If explicitly set, use that
+    if os.getenv("REDIS_URL"):
+        return os.getenv("REDIS_URL")
+    
+    # Check if running in Docker (common environment variables)
+    in_docker = (
+        os.path.exists('/.dockerenv') or 
+        os.getenv('DOCKER_CONTAINER') or
+        os.path.exists('/app')  # Common Docker workdir
+    )
+    
+    if in_docker:
+        # Docker setup: use service name 'redis'
+        return "redis://redis:6379/0"
+    else:
+        # Local development: use localhost
+        return "redis://localhost:6379/0"
+
+REDIS_URL = get_redis_url()
+
 # Calculate optimal pool size based on workers
 # Formula: (workers_per_instance * instances) + buffer
 WORKERS_PER_INSTANCE = int(os.getenv("WORKERS_PER_INSTANCE", "4"))

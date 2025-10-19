@@ -9,14 +9,13 @@ import redis
 import json
 import os
 
-from ..database import get_db
+from ..database import get_db, REDIS_URL
 from ..models import Vulnerability, IngestionRun
 from ..schemas import StatsResponse
 
 router = APIRouter()
 
 # Redis connection for caching
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 STATS_CACHE_KEY = "dashboard:stats"
 STATS_CACHE_TTL = 300  # 5 minutes

@@ -155,7 +155,8 @@ class RedisRateLimiter:
 
 
 # Global rate limiter instance
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+from backend.database import REDIS_URL
+
 redis_rate_limiter = RedisRateLimiter(
     redis_url=REDIS_URL,
     requests_per_minute=int(os.getenv("RATE_LIMIT_PER_MINUTE", "60")),
