@@ -421,31 +421,46 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True, index=True)
-    
+
     # Content (plain text only)
     content = Column(Text, nullable=False)
-    
+
     # Relationships
-    cve_id = Column(String(50), ForeignKey("vulnerabilities.cve_id"), nullable=False, index=True)
+    cve_id = Column(
+        String(50), ForeignKey("vulnerabilities.cve_id"), nullable=False, index=True
+    )
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    parent_id = Column(Integer, ForeignKey("comments.id"), nullable=True, index=True)  # For nested comments
-    
+    parent_id = Column(
+        Integer, ForeignKey("comments.id"), nullable=True, index=True
+    )  # For nested comments
+
     # Metadata
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
     is_edited = Column(Boolean, default=False, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)  # Soft delete
-    
+
     # Vote counts (denormalized for performance)
     upvotes = Column(Integer, default=0, nullable=False)
     downvotes = Column(Integer, default=0, nullable=False)
-    
+
     # Relationships
     user = relationship("User", backref="comments")
     vulnerability = relationship("Vulnerability", backref="comments")
     parent = relationship("Comment", remote_side=[id], backref="replies")
-    votes = relationship("CommentVote", back_populates="comment", cascade="all, delete-orphan")
-    
+    votes = relationship(
+        "CommentVote", back_populates="comment", cascade="all, delete-orphan"
+    )
+
     # Indexes for performance
     __table_args__ = (
         Index("idx_comments_cve_created", "cve_id", "created_at"),
@@ -466,22 +481,31 @@ class CommentVote(Base):
     __tablename__ = "comment_votes"
 
     id = Column(Integer, primary_key=True, index=True)
-    
+
     # Relationships
     comment_id = Column(Integer, ForeignKey("comments.id"), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    
+
     # Vote type: 1 for upvote, -1 for downvote
     vote_type = Column(Integer, nullable=False)  # 1 or -1
-    
+
     # Metadata
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
     # Relationships
     comment = relationship("Comment", back_populates="votes")
     user = relationship("User", backref="comment_votes")
-    
+
     # Constraints: one vote per user per comment
     __table_args__ = (
         Index("idx_comment_votes_unique", "comment_id", "user_id", unique=True),
@@ -491,3 +515,61 @@ class CommentVote(Base):
     def __repr__(self):
         vote_str = "upvote" if self.vote_type == 1 else "downvote"
         return f"<CommentVote(id={self.id}, comment_id={self.comment_id}, {vote_str})>"
+
+
+class Notification(Base):
+    """
+    User notifications for mentions, replies, and other events.
+    """
+
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Recipient
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    # Notification type
+    type = Column(
+        String(50), nullable=False, index=True
+    )  # 'mention', 'reply', 'vote', etc.
+
+    # Content
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+
+    # Related entities (optional, depends on notification type)
+    comment_id = Column(Integer, ForeignKey("comments.id"), nullable=True, index=True)
+    cve_id = Column(
+        String(50), ForeignKey("vulnerabilities.cve_id"), nullable=True, index=True
+    )
+
+    # Actor (who triggered the notification)
+    actor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    # Status
+    is_read = Column(Boolean, default=False, nullable=False, index=True)
+    read_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Metadata
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id], backref="notifications")
+    actor = relationship("User", foreign_keys=[actor_id])
+    comment = relationship("Comment", backref="notifications")
+    vulnerability = relationship("Vulnerability", backref="notifications")
+
+    # Indexes for performance
+    __table_args__ = (
+        Index("idx_notifications_user_created", "user_id", "created_at"),
+        Index("idx_notifications_user_unread", "user_id", "is_read"),
+        Index("idx_notifications_type", "type"),
+    )
+
+    def __repr__(self):
+        return f"<Notification(id={self.id}, user_id={self.user_id}, type={self.type}, is_read={self.is_read})>"
