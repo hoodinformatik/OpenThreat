@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Shield, Search, BarChart3, Rss, Info, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UserMenu from "./user-menu";
+import { NotificationCenter } from "./NotificationCenter";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -72,6 +73,7 @@ export function Navigation() {
                 />
               </svg>
             </a>
+            <NotificationCenter />
             <UserMenu />
           </div>
         </div>

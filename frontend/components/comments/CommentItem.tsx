@@ -131,6 +131,22 @@ export function CommentItem({
     setShowReplies(true);
   };
 
+  const handleReplyUpdated = (updatedReply: Comment) => {
+    // Update local replies state
+    setReplies(replies.map((r) => (r.id === updatedReply.id ? updatedReply : r)));
+    // Always propagate to parent so the entire tree stays in sync
+    onCommentUpdated(updatedReply);
+  };
+
+  const handleReplyDeleted = (replyId: number) => {
+    setReplies(replies.filter((r) => r.id !== replyId));
+    // Also notify parent
+    if (replyId === comment.id) {
+      onCommentDeleted(replyId);
+    }
+  };
+
+
   if (comment.is_deleted) {
     return (
       <div className={`${depth > 0 ? "ml-8 pl-4 border-l-2 border-gray-200" : ""}`}>
@@ -331,8 +347,8 @@ export function CommentItem({
               key={reply.id}
               comment={reply}
               cveId={cveId}
-              onCommentUpdated={onCommentUpdated}
-              onCommentDeleted={onCommentDeleted}
+              onCommentUpdated={handleReplyUpdated}
+              onCommentDeleted={handleReplyDeleted}
               onVote={onVote}
               depth={depth + 1}
             />
