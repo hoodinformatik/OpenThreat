@@ -51,6 +51,8 @@ OpenThreat makes threat intelligence accessible to everyone - from security prof
 
 ## 🚀 Quick Start
 
+> 💡 **Neu hier?** Siehe [QUICK_START.md](QUICK_START.md) für eine Schritt-für-Schritt Anleitung!
+
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 - [Python 3.13+](https://www.python.org/downloads/)
@@ -78,8 +80,14 @@ docker-compose up -d
 
 3. **Set up backend**
 ```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Create database tables
 alembic upgrade head
+
+# Or use the setup script (Windows)
+.\setup_database.bat
 
 # Populate database (choose one):
 # Option A: Recent CVEs only (fast, recommended for first run)
@@ -91,8 +99,11 @@ python scripts/fetch_nvd_complete.py --recent --days 30
 # Fetch CISA KEV data (exploited vulnerabilities)
 python scripts/fetch_cisa_kev.py
 
-# Start backend
+# Start backend (IMPORTANT: from project root, not from backend/)
 python -m uvicorn backend.main:app --reload --port 8001
+
+# Or use the batch script (Windows)
+.\start_backend.bat
 ```
 
 4. **Start frontend**
@@ -100,6 +111,9 @@ python -m uvicorn backend.main:app --reload --port 8001
 cd frontend
 npm install
 npm run dev
+
+# Or use the batch script (Windows)
+.\start_frontend.bat
 ```
 
 5. **Verify the setup**
@@ -226,8 +240,45 @@ We aggregate data from trusted public sources:
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
 
-## 📖 Documentation
+## 🔧 Local Development
 
+### API Routing (Development vs Production)
+
+The frontend uses relative API paths (e.g., `/api/v1/auth/register`). These work differently depending on the environment:
+
+**Development (local):**
+- Next.js Rewrites automatically forward API requests to `http://127.0.0.1:8001`
+- Configured in `frontend/next.config.js`
+- No additional configuration needed
+
+**Production:**
+- Nginx routes all requests (Frontend + Backend)
+- Configured in `nginx/nginx.conf`
+
+### Local Testing with Nginx (Optional)
+
+If you want to replicate the production environment locally:
+
+```bash
+# Use the development nginx configuration
+docker run -d \
+  --name openthreat-nginx \
+  -p 80:80 \
+  -v $(pwd)/nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro \
+  --add-host host.docker.internal:host-gateway \
+  nginx:alpine
+```
+
+See [nginx/README.md](nginx/README.md) for details.
+
+## **Documentation**
+
+### Getting Started
+- [Quick Start Guide](QUICK_START.md) - 5-Minute Setup
+- [Development Setup](DEVELOPMENT_SETUP.md) - Local Development & Troubleshooting
+- [Nginx Configuration](nginx/README.md) - Routing & Reverse Proxy
+
+### Technical Documentation
 - [API Documentation](docs/API.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Database Schema](docs/DATABASE.md)

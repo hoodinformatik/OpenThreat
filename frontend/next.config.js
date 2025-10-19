@@ -5,6 +5,29 @@ const nextConfig = {
   },
   reactStrictMode: true,
   
+  // API Rewrites for local development
+  // In production, nginx handles the routing
+  async rewrites() {
+    // Only apply rewrites in development mode
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: 'http://127.0.0.1:8001/api/:path*',
+        },
+        {
+          source: '/health',
+          destination: 'http://127.0.0.1:8001/health',
+        },
+        {
+          source: '/metrics',
+          destination: 'http://127.0.0.1:8001/metrics',
+        },
+      ];
+    }
+    return [];
+  },
+  
   // Security headers for strict CSP
   async headers() {
     return [

@@ -28,13 +28,24 @@ echo ✓ Docker containers started
 echo.
 
 REM Wait for database
-echo [3/4] Waiting for database to be ready...
-timeout /t 3 /nobreak >nul
+echo [3/5] Waiting for database to be ready...
+timeout /t 5 /nobreak >nul
 echo ✓ Database ready
 echo.
 
+REM Run database migrations
+echo [4/5] Running database migrations...
+alembic upgrade head >nul 2>&1
+if %errorlevel% neq 0 (
+    echo WARNING: Database migrations may have failed
+    echo Run '.\setup_database.bat' manually if needed
+) else (
+    echo ✓ Database tables created
+)
+echo.
+
 REM Start backend and frontend
-echo [4/4] Starting Backend and Frontend...
+echo [5/5] Starting Backend and Frontend...
 echo.
 echo Starting Backend API on http://localhost:8001
 echo Starting Frontend on http://localhost:3000
