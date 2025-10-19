@@ -1,10 +1,13 @@
 """
 Database configuration and session management.
 """
+
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
+
 
 # Database URL from environment or auto-detect based on setup
 # Priority: 1. Environment variable, 2. Docker setup, 3. Local development
@@ -13,14 +16,14 @@ def get_database_url():
     # If explicitly set, use that
     if os.getenv("DATABASE_URL"):
         return os.getenv("DATABASE_URL")
-    
+
     # Check if running in Docker (common environment variables)
     in_docker = (
-        os.path.exists('/.dockerenv') or 
-        os.getenv('DOCKER_CONTAINER') or
-        os.path.exists('/app')  # Common Docker workdir
+        os.path.exists("/.dockerenv")
+        or os.getenv("DOCKER_CONTAINER")
+        or os.path.exists("/app")  # Common Docker workdir
     )
-    
+
     if in_docker:
         # Docker setup: use service name 'postgres'
         return "postgresql://openthreat:openthreat@postgres:5432/openthreat"
@@ -28,27 +31,30 @@ def get_database_url():
         # Local development: use localhost
         return "postgresql://openthreat:openthreat@localhost:5432/openthreat"
 
+
 DATABASE_URL = get_database_url()
+
 
 def get_redis_url():
     """Get Redis URL with smart defaults for different environments."""
     # If explicitly set, use that
     if os.getenv("REDIS_URL"):
         return os.getenv("REDIS_URL")
-    
+
     # Check if running in Docker (common environment variables)
     in_docker = (
-        os.path.exists('/.dockerenv') or 
-        os.getenv('DOCKER_CONTAINER') or
-        os.path.exists('/app')  # Common Docker workdir
+        os.path.exists("/.dockerenv")
+        or os.getenv("DOCKER_CONTAINER")
+        or os.path.exists("/app")  # Common Docker workdir
     )
-    
+
     if in_docker:
         # Docker setup: use service name 'redis'
         return "redis://redis:6379/0"
     else:
         # Local development: use localhost
         return "redis://localhost:6379/0"
+
 
 REDIS_URL = get_redis_url()
 
@@ -65,10 +71,7 @@ MAX_OVERFLOW = POOL_SIZE * 2  # Allow 2x overflow during peak
 
 # For SQLite fallback (development only)
 if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        DATABASE_URL,
-        connect_args={"check_same_thread": False}
-    )
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
     engine = create_engine(
         DATABASE_URL,
@@ -77,11 +80,12 @@ else:
         max_overflow=MAX_OVERFLOW,  # Additional connections during peak
         pool_recycle=3600,  # Recycle connections after 1 hour
         pool_timeout=30,  # Wait max 30s for connection
-        echo_pool=os.getenv("DEBUG_POOL", "false").lower() == "true"  # Debug pool
+        echo_pool=os.getenv("DEBUG_POOL", "false").lower() == "true",  # Debug pool
     )
-    
+
     # Log pool configuration
     import logging
+
     logger = logging.getLogger(__name__)
     logger.info(
         f"Database pool configured: size={POOL_SIZE}, "

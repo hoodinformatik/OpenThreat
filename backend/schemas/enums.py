@@ -3,11 +3,13 @@ Enums for API input validation.
 
 Prevents SQL injection and ensures type safety.
 """
+
 from enum import Enum
 
 
 class SeverityEnum(str, Enum):
     """Vulnerability severity levels."""
+
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
@@ -17,12 +19,14 @@ class SeverityEnum(str, Enum):
 
 class SortOrderEnum(str, Enum):
     """Sort order for queries."""
+
     ASC = "asc"
     DESC = "desc"
 
 
 class VulnerabilitySortFieldEnum(str, Enum):
     """Allowed sort fields for vulnerabilities."""
+
     PRIORITY_SCORE = "priority_score"
     CVSS_SCORE = "cvss_score"
     PUBLISHED_AT = "published_at"
@@ -33,6 +37,7 @@ class VulnerabilitySortFieldEnum(str, Enum):
 
 class SearchSortFieldEnum(str, Enum):
     """Allowed sort fields for search."""
+
     RELEVANCE = "relevance"
     PUBLISHED_AT = "published_at"
     CVSS_SCORE = "cvss_score"
@@ -41,6 +46,7 @@ class SearchSortFieldEnum(str, Enum):
 
 class DataSourceEnum(str, Enum):
     """Available data sources."""
+
     CISA_KEV = "cisa_kev"
     NVD_CVE = "nvd_cve"
     EU_CVE_SEARCH = "eu_cve_search"
@@ -50,6 +56,7 @@ class DataSourceEnum(str, Enum):
 
 class LLMPriorityEnum(str, Enum):
     """LLM processing priority levels."""
+
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"

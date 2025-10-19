@@ -1,12 +1,12 @@
 """Utilities module for OpenThreat backend."""
 
 from .error_handlers import (
-    OpenThreatException,
     DatabaseError,
-    NotFoundError,
-    ValidationError,
     ExternalServiceError,
-    register_error_handlers
+    NotFoundError,
+    OpenThreatException,
+    ValidationError,
+    register_error_handlers,
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     "NotFoundError",
     "ValidationError",
     "ExternalServiceError",
-    "register_error_handlers"
+    "register_error_handlers",
 ]

@@ -11,7 +11,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         options: >-
@@ -85,10 +85,18 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     continue-on-error: true
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for gitleaks
+
+    - name: Run Gitleaks secret scan
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
     - name: Run Trivy vulnerability scanner
       continue-on-error: true
@@ -111,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs: [test, security]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

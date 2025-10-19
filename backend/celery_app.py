@@ -1,9 +1,12 @@
 """
 Celery application for background tasks and scheduled jobs.
 """
+
 import os
+
 from celery import Celery
 from celery.schedules import crontab
+
 from backend.database import REDIS_URL
 
 # Create Celery app
@@ -11,7 +14,7 @@ celery_app = Celery(
     "openthreat",
     broker=REDIS_URL,
     backend=REDIS_URL,
-    include=["backend.tasks", "backend.tasks.llm_tasks", "backend.tasks.data_tasks"]
+    include=["backend.tasks", "backend.tasks.llm_tasks", "backend.tasks.data_tasks"],
 )
 
 # Celery configuration
@@ -45,7 +48,6 @@ celery_app.conf.beat_schedule = {
         "task": "backend.tasks.update_stats_cache_task",
         "schedule": crontab(minute="*/15"),  # Every 15 minutes
     },
-    
     # Data Fetching Tasks
     # Fetch BSI CERT-Bund advisories daily at 08:00 UTC
     "fetch-bsi-cert": {
@@ -57,7 +59,6 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.fetch_cisa_kev",
         "schedule": crontab(minute=0, hour=9),  # Daily at 09:00 UTC
     },
-    
     # LLM Processing Tasks - Only for NEW CVEs
     # Historical CVEs are marked as processed (skip LLM)
     # Only new CVEs will be processed with LLM
@@ -67,21 +68,34 @@ celery_app.conf.beat_schedule = {
     },
 }
 
-# Import and register tasks manually to avoid circular imports
-from backend.tasks import llm_tasks, data_tasks  # noqa: E402, F401
-
 # Import core task functions from the tasks.py module (not the tasks package)
 import sys
 from pathlib import Path
+
+# Import and register tasks manually to avoid circular imports
+from backend.tasks import data_tasks, llm_tasks  # noqa: E402, F401
+
 tasks_module_path = Path(__file__).parent / "tasks.py"
-spec = __import__('importlib.util').util.spec_from_file_location("backend.tasks_module", tasks_module_path)
-tasks_module = __import__('importlib.util').util.module_from_spec(spec)
+spec = __import__("importlib.util").util.spec_from_file_location(
+    "backend.tasks_module", tasks_module_path
+)
+tasks_module = __import__("importlib.util").util.module_from_spec(spec)
 spec.loader.exec_module(tasks_module)
 
 # Register core tasks manually
-celery_app.task(base=tasks_module.DatabaseTask, bind=True, name="backend.tasks.update_vulnerabilities_task")(tasks_module.update_vulnerabilities_task)
-celery_app.task(base=tasks_module.DatabaseTask, bind=True, name="backend.tasks.clean_cache_task")(tasks_module.clean_cache_task)
-celery_app.task(base=tasks_module.DatabaseTask, bind=True, name="backend.tasks.update_stats_cache_task")(tasks_module.update_stats_cache_task)
+celery_app.task(
+    base=tasks_module.DatabaseTask,
+    bind=True,
+    name="backend.tasks.update_vulnerabilities_task",
+)(tasks_module.update_vulnerabilities_task)
+celery_app.task(
+    base=tasks_module.DatabaseTask, bind=True, name="backend.tasks.clean_cache_task"
+)(tasks_module.clean_cache_task)
+celery_app.task(
+    base=tasks_module.DatabaseTask,
+    bind=True,
+    name="backend.tasks.update_stats_cache_task",
+)(tasks_module.update_stats_cache_task)
 
 if __name__ == "__main__":
     celery_app.start()

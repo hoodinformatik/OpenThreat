@@ -1,29 +1,30 @@
 """
 FastAPI main application for OpenThreat.
 """
-from fastapi import FastAPI, Depends, HTTPException, Query
+
+import logging
+import os
+from datetime import datetime, timezone
+
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-import os
-import logging
 
-from .database import get_db, engine
-from .models import Base
 from . import api
 from .config.logging_config import setup_logging
-from .utils.error_handlers import register_error_handlers
-# Use Redis-based rate limiting for multi-replica support
-from .middleware.redis_rate_limit import redis_rate_limit_middleware
+from .database import engine, get_db
+
 # CSRF Protection
 from .middleware.csrf_protect import csrf_protect_middleware
 
+# Use Redis-based rate limiting for multi-replica support
+from .middleware.redis_rate_limit import redis_rate_limit_middleware
+from .models import Base
+from .utils.error_handlers import register_error_handlers
+
 # Setup logging
-setup_logging(
-    level=os.getenv("LOG_LEVEL", "INFO"),
-    log_file=os.getenv("LOG_FILE")
-)
+setup_logging(level=os.getenv("LOG_LEVEL", "INFO"), log_file=os.getenv("LOG_FILE"))
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app
@@ -39,15 +40,34 @@ app = FastAPI(
 register_error_handlers(app)
 
 # CORS middleware
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # Explicit methods
-    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token", "X-Request-ID"],  # Explicit headers
-    expose_headers=["X-CSRF-Token", "X-Request-ID", "X-RateLimit-Limit-Minute", "X-RateLimit-Remaining-Minute"],
+    allow_methods=[
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS",
+    ],  # Explicit methods
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "X-CSRF-Token",
+        "X-Request-ID",
+    ],  # Explicit headers
+    expose_headers=[
+        "X-CSRF-Token",
+        "X-Request-ID",
+        "X-RateLimit-Limit-Minute",
+        "X-RateLimit-Remaining-Minute",
+    ],
 )
 
 # CSRF Protection middleware (must be before rate limiting)
@@ -57,15 +77,18 @@ app.middleware("http")(csrf_protect_middleware)
 app.middleware("http")(redis_rate_limit_middleware)
 
 # Metrics middleware
-from .middleware.metrics import metrics_middleware, metrics_endpoint
+from .middleware.metrics import metrics_endpoint, metrics_middleware
+
 app.middleware("http")(metrics_middleware)
 
 # Metrics endpoint
-app.add_api_route("/metrics", metrics_endpoint, methods=["GET"], include_in_schema=False)
+app.add_api_route(
+    "/metrics", metrics_endpoint, methods=["GET"], include_in_schema=False
+)
 
 # Include routers
-from .api import vulnerabilities, stats, search, health, feeds, tasks, csrf, auth, admin
-from .api.v1 import llm, data_sources
+from .api import admin, auth, csrf, feeds, health, search, stats, tasks, vulnerabilities
+from .api.v1 import data_sources, llm
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
@@ -93,7 +116,7 @@ async def root():
             "vulnerabilities": "/api/v1/vulnerabilities",
             "search": "/api/v1/search",
             "stats": "/api/v1/stats",
-        }
+        },
     }
 
 
@@ -118,9 +141,5 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "backend.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,0 +1,26 @@
+# Gitleaks configuration for OpenThreat
+# https://github.com/gitleaks/gitleaks
+
+title = "OpenThreat Gitleaks Configuration"
+
+[extend]
+# useDefault will extend the base configuration with the default gitleaks config
+useDefault = true
+
+[allowlist]
+description = "Allowlist for false positives"
+
+# Ignore example files and documentation
+paths = [
+    '''\.env\.example$''',
+    '''\.env\.production\.example$''',
+    '''docs/.*\.md$''',
+]
+
+# Ignore GitHub Actions secret references and test data
+regexes = [
+    '''secrets\.[A-Z_]+''',
+    '''SECRET_KEY.*test''',
+    '''example.*password''',
+    '''dummy.*token''',
+]

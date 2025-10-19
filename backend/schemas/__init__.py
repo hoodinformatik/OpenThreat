@@ -1,13 +1,16 @@
 """
 Pydantic schemas for API request/response validation.
 """
-from datetime import datetime, date
-from typing import List, Optional, Union, Any
+
+from datetime import date, datetime
+from typing import Any, List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class VulnerabilityBase(BaseModel):
     """Base vulnerability schema."""
+
     cve_id: str
     title: str
     description: Optional[str] = None
@@ -20,19 +23,21 @@ class VulnerabilityBase(BaseModel):
 
 class VulnerabilityList(VulnerabilityBase):
     """Vulnerability schema for list views."""
+
     published_at: Optional[datetime] = None
     modified_at: Optional[datetime] = None
     sources: Optional[List[str]] = None
     simple_title: Optional[str] = None
     simple_description: Optional[str] = None
     llm_processed: bool = False
-    
+
     class Config:
         from_attributes = True
 
 
 class VulnerabilityDetail(VulnerabilityBase):
     """Vulnerability schema for detail views."""
+
     id: int
     published_at: Optional[datetime] = None
     modified_at: Optional[datetime] = None
@@ -49,13 +54,14 @@ class VulnerabilityDetail(VulnerabilityBase):
     llm_processed: bool = False
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class PaginatedResponse(BaseModel):
     """Paginated response wrapper."""
+
     total: int
     page: int
     page_size: int
@@ -65,6 +71,7 @@ class PaginatedResponse(BaseModel):
 
 class StatsResponse(BaseModel):
     """Statistics response."""
+
     total_vulnerabilities: int
     exploited_vulnerabilities: int
     critical_vulnerabilities: int
@@ -76,14 +83,19 @@ class StatsResponse(BaseModel):
 
 class SearchQuery(BaseModel):
     """Search query parameters."""
+
     q: Optional[str] = Field(None, description="Search query")
     severity: Optional[str] = Field(None, description="Filter by severity")
     exploited: Optional[bool] = Field(None, description="Filter by exploitation status")
     vendor: Optional[str] = Field(None, description="Filter by vendor")
     product: Optional[str] = Field(None, description="Filter by product")
     cwe: Optional[str] = Field(None, description="Filter by CWE ID")
-    min_cvss: Optional[float] = Field(None, ge=0.0, le=10.0, description="Minimum CVSS score")
-    max_cvss: Optional[float] = Field(None, ge=0.0, le=10.0, description="Maximum CVSS score")
+    min_cvss: Optional[float] = Field(
+        None, ge=0.0, le=10.0, description="Minimum CVSS score"
+    )
+    max_cvss: Optional[float] = Field(
+        None, ge=0.0, le=10.0, description="Maximum CVSS score"
+    )
     published_after: Optional[date] = Field(None, description="Published after date")
     published_before: Optional[date] = Field(None, description="Published before date")
     page: int = Field(1, ge=1, description="Page number")
@@ -94,6 +106,7 @@ class SearchQuery(BaseModel):
 
 class TechniqueBase(BaseModel):
     """Base technique schema."""
+
     technique_id: str
     name: str
     description: Optional[str] = None
@@ -103,6 +116,7 @@ class TechniqueBase(BaseModel):
 
 class TechniqueDetail(TechniqueBase):
     """Technique schema for detail views."""
+
     id: int
     data_sources: Optional[List[str]] = None
     detection: Optional[str] = None
@@ -110,13 +124,14 @@ class TechniqueDetail(TechniqueBase):
     references: Optional[List[dict]] = None
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class IOCBase(BaseModel):
     """Base IOC schema."""
+
     ioc_type: str
     value: str
     threat_type: Optional[str] = None
@@ -126,6 +141,7 @@ class IOCBase(BaseModel):
 
 class IOCDetail(IOCBase):
     """IOC schema for detail views."""
+
     id: int
     tags: Optional[List[str]] = None
     first_seen: Optional[datetime] = None
@@ -136,13 +152,14 @@ class IOCDetail(IOCBase):
     context: Optional[dict] = None
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class HealthResponse(BaseModel):
     """Health check response."""
+
     status: str
     database: str
     version: str
