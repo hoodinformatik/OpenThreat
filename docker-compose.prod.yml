@@ -117,7 +117,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    command: celery -A backend.celery_app worker --loglevel=info --concurrency=2
+    command: celery -A backend.celery_app worker --loglevel=info --concurrency=1
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-openthreat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openthreat}
       - REDIS_URL=redis://redis:6379
@@ -163,14 +163,17 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_MAX_LOADED_MODELS=1
     restart: unless-stopped
     networks:
       - openthreat-network
     deploy:
       resources:
         limits:
-          cpus: '1.5'
-          memory: 2G
+          cpus: '2.0'
+          memory: 4G
 
 volumes:
   postgres_data:

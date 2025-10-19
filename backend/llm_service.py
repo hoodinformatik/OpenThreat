@@ -27,14 +27,18 @@ class LLMService:
         # Get model from env or use provided model or default
         self.model = model or os.getenv('LLM_MODEL', 'llama3.2:1b')
         self.enabled = enabled
+        self.ollama_host = os.getenv('OLLAMA_HOST', 'http://localhost:11434')
+        
+        # Configure Ollama client
+        self.client = ollama.Client(host=self.ollama_host)
         
         if enabled:
             try:
                 # Test if Ollama is available
-                ollama.list()
-                logger.info(f"LLM Service initialized with model: {self.model}")
+                self.client.list()
+                logger.info(f"LLM Service initialized with model: {self.model} at {self.ollama_host}")
             except Exception as e:
-                logger.warning(f"Ollama not available: {e}. LLM features disabled.")
+                logger.warning(f"Ollama not available at {self.ollama_host}: {e}. LLM features disabled.")
                 self.enabled = False
     
     def generate_cve_summary(
@@ -64,12 +68,100 @@ class LLMService:
         Returns:
             Dict with 'simple_title' and 'simple_description'
         """
+        # Use LLM-based generation
+        return self.generate_cve_summary_with_llm(
+            cve_id, original_title, description, cvss_score, 
+            severity, vendors, products, published_at
+        )
+    
+    def _generate_simple_summary(
+        self,
+        cve_id: str,
+        original_title: str,
+        description: str,
+        cvss_score: Optional[float],
+        severity: Optional[str],
+        vendors: Optional[list],
+        products: Optional[list],
+        published_at: Optional[datetime]
+    ) -> Dict[str, str]:
+        """Generate simple title and description without LLM (rule-based)."""
+        
+        # Build simple title
+        vendor_str = vendors[0] if vendors and len(vendors) > 0 else "Unknown"
+        product_str = products[0] if products and len(products) > 0 else "Software"
+        
+        # Extract vulnerability type from description
+        vuln_type = "Vulnerability"
+        desc_lower = description.lower() if description else ""
+        
+        if "remote code execution" in desc_lower or "rce" in desc_lower:
+            vuln_type = "Remote Code Execution"
+        elif "sql injection" in desc_lower:
+            vuln_type = "SQL Injection"
+        elif "cross-site scripting" in desc_lower or "xss" in desc_lower:
+            vuln_type = "Cross-Site Scripting"
+        elif "buffer overflow" in desc_lower:
+            vuln_type = "Buffer Overflow"
+        elif "denial of service" in desc_lower or "dos" in desc_lower:
+            vuln_type = "Denial of Service"
+        elif "authentication" in desc_lower or "bypass" in desc_lower:
+            vuln_type = "Authentication Bypass"
+        elif "privilege escalation" in desc_lower:
+            vuln_type = "Privilege Escalation"
+        elif "information disclosure" in desc_lower:
+            vuln_type = "Information Disclosure"
+        elif "path traversal" in desc_lower or "directory traversal" in desc_lower:
+            vuln_type = "Path Traversal"
+        elif "command injection" in desc_lower:
+            vuln_type = "Command Injection"
+        
+        # Create simple title
+        simple_title = f"{vuln_type} in {vendor_str} {product_str}"
+        if severity:
+            simple_title = f"{severity.title()} {simple_title}"
+        
+        # Limit title length
+        if len(simple_title) > 100:
+            simple_title = simple_title[:97] + "..."
+        
+        # Create simple description (first 2-3 sentences)
+        simple_description = description[:300] if description else "No description available."
+        
+        # Try to end at sentence boundary
+        if len(description) > 300:
+            last_period = simple_description.rfind('.')
+            if last_period > 100:
+                simple_description = simple_description[:last_period + 1]
+            else:
+                simple_description += "..."
+        
+        return {
+            "simple_title": simple_title,
+            "simple_description": simple_description
+        }
+    
+    def generate_cve_summary_with_llm(
+        self,
+        cve_id: str,
+        original_title: str,
+        description: str,
+        cvss_score: Optional[float] = None,
+        severity: Optional[str] = None,
+        vendors: Optional[list] = None,
+        products: Optional[list] = None,
+        published_at: Optional[datetime] = None,
+    ) -> Dict[str, str]:
+        """
+        Generate summary using LLM (slow, only use if you have GPU).
+        This is the original LLM-based implementation.
+        """
         if not self.enabled:
-            # Fallback to original data if LLM is disabled
-            return {
-                "simple_title": original_title or cve_id,
-                "simple_description": description[:200] + "..." if len(description) > 200 else description
-            }
+            # Fallback to rule-based
+            return self._generate_simple_summary(
+                cve_id, original_title, description, cvss_score,
+                severity, vendors, products, published_at
+            )
         
         try:
             # Build context
@@ -98,7 +190,7 @@ Example format: "Security Flaw in Microsoft Windows Allows Remote Access"
 Generate ONLY the title, nothing else:"""
 
             # Generate title
-            title_response = ollama.generate(
+            title_response = self.client.generate(
                 model=self.model,
                 prompt=title_prompt,
                 options={
@@ -134,7 +226,7 @@ Example good output: "This vulnerability allows attackers to remotely access Win
 Generate ONLY the description:"""
 
             # Generate description
-            desc_response = ollama.generate(
+            desc_response = self.client.generate(
                 model=self.model,
                 prompt=desc_prompt,
                 options={

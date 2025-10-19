@@ -11,9 +11,13 @@ from celery import Task
 from sqlalchemy import func, delete
 from sqlalchemy.orm import Session
 
-from .celery_app import celery_app
 from .database import SessionLocal
 from .models import Vulnerability, IngestionRun, SearchCache
+
+# Lazy import celery_app to avoid circular import
+def get_celery_app():
+    from .celery_app import celery_app
+    return celery_app
 
 
 class DatabaseTask(Task):
@@ -32,73 +36,21 @@ class DatabaseTask(Task):
             self._db = None
 
 
-@celery_app.task(base=DatabaseTask, bind=True, name="backend.tasks.update_vulnerabilities_task")
 def update_vulnerabilities_task(self):
     """
     Scheduled task to update vulnerabilities from all data sources.
-    Runs every 2 hours.
+    Fetches recent CVEs from NVD (last 7 days).
     """
     try:
         print(f"[{datetime.utcnow()}] Starting vulnerability update...")
         
-        # Get project root directory
-        project_root = Path(__file__).parent.parent
-        connectors_dir = project_root / "Data_Sample_Connectors"
-        output_dir = connectors_dir / "out"
+        # Import NVD service
+        from .services.nvd_complete_service import get_nvd_service
         
-        # Ensure output directory exists
-        output_dir.mkdir(exist_ok=True)
-        
-        # Step 1: Run all data connectors
-        print("Step 1/3: Collecting data from sources...")
-        run_all_script = connectors_dir / "run_all.py"
-        
-        result = subprocess.run(
-            ["python", str(run_all_script)],
-            cwd=str(connectors_dir),
-            capture_output=True,
-            text=True,
-            timeout=1800  # 30 minutes timeout
-        )
-        
-        if result.returncode != 0:
-            raise Exception(f"Data collection failed: {result.stderr}")
-        
-        print(f"Data collection completed. Output:\n{result.stdout}")
-        
-        # Step 2: Run deduplication
-        print("Step 2/3: Deduplicating data...")
-        dedup_script = connectors_dir / "deduplicator.py"
-        
-        result = subprocess.run(
-            ["python", str(dedup_script)],
-            cwd=str(connectors_dir),
-            capture_output=True,
-            text=True,
-            timeout=600  # 10 minutes timeout
-        )
-        
-        if result.returncode != 0:
-            raise Exception(f"Deduplication failed: {result.stderr}")
-        
-        print(f"Deduplication completed. Output:\n{result.stdout}")
-        
-        # Step 3: Ingest into database
-        print("Step 3/3: Ingesting into database...")
-        deduplicated_file = output_dir / "deduplicated_cves.ndjson"
-        
-        if not deduplicated_file.exists():
-            raise Exception(f"Deduplicated file not found: {deduplicated_file}")
-        
-        # Import ingestion module
-        from .ingestion import ingest_from_ndjson
-        
-        # Run ingestion
-        stats = ingest_from_ndjson(
-            str(deduplicated_file),
-            run_type="scheduled_update",
-            db=self.db
-        )
+        # Fetch recent CVEs (last 7 days)
+        print("Fetching CVEs modified in last 7 days from NVD...")
+        nvd_service = get_nvd_service()
+        stats = nvd_service.fetch_recent_cves(days=7)
         
         print(f"Ingestion completed: {stats}")
         
@@ -128,7 +80,6 @@ def update_vulnerabilities_task(self):
         }
 
 
-@celery_app.task(base=DatabaseTask, bind=True, name="backend.tasks.clean_cache_task")
 def clean_cache_task(self):
     """
     Clean old cache entries from the database.
@@ -166,7 +117,6 @@ def clean_cache_task(self):
         }
 
 
-@celery_app.task(base=DatabaseTask, bind=True, name="backend.tasks.update_stats_cache_task")
 def update_stats_cache_task(self):
     """
     Update statistics cache for faster dashboard loading.
@@ -222,7 +172,6 @@ def update_stats_cache_task(self):
         }
 
 
-@celery_app.task(name="backend.tasks.manual_update_task")
 def manual_update_task():
     """
     Manual trigger for vulnerability update.
@@ -231,7 +180,6 @@ def manual_update_task():
     return update_vulnerabilities_task()
 
 
-@celery_app.task(name="backend.tasks.test_task")
 def test_task(message: str = "Hello from Celery!"):
     """
     Simple test task to verify Celery is working.
