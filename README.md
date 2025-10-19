@@ -88,6 +88,9 @@ python scripts/fetch_nvd_complete.py --recent --days 30
 # Option B: All CVEs (takes hours, run overnight)
 # python scripts/fetch_nvd_complete.py
 
+# Fetch CISA KEV data (exploited vulnerabilities)
+python scripts/fetch_cisa_kev.py
+
 # Start backend
 python -m uvicorn backend.main:app --reload --port 8001
 ```
@@ -99,16 +102,13 @@ npm install
 npm run dev
 ```
 
-5. **Populate the database**
+5. **Verify the setup**
 ```bash
-# Fetch recent CVEs (5-30 minutes)
-curl -X POST "http://localhost:8001/api/v1/data-sources/nvd/fetch-recent?days=30"
+# Check stats (should show exploited vulnerabilities)
+curl "http://localhost:8001/api/v1/stats"
 
-# Fetch CISA KEV data (30 seconds)
-curl -X POST "http://localhost:8001/api/v1/data-sources/cisa-kev/fetch"
-
-# Check status
-curl "http://localhost:8001/api/v1/stats/overview"
+# Check KEV status
+curl "http://localhost:8001/api/v1/data-sources/cisa-kev/status"
 ```
 
 6. **Access the application**
@@ -134,11 +134,13 @@ Or use curl:
 # Fetch recent CVEs (fast)
 curl -X POST "http://localhost:8001/api/v1/data-sources/nvd/fetch-recent?days=30"
 
-# Fetch CISA KEV (marks exploited CVEs)
-curl -X POST "http://localhost:8001/api/v1/data-sources/cisa-kev/fetch"
-
 # Fetch BSI CERT (German descriptions)
 curl -X POST "http://localhost:8001/api/v1/data-sources/bsi-cert/fetch"
+```
+
+**Note:** CISA KEV data should already be populated during initial setup. If not, run:
+```bash
+python scripts/fetch_cisa_kev.py
 ```
 
 ### Option 2: CLI Script

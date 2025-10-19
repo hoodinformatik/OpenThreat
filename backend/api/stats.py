@@ -3,7 +3,7 @@ Statistics and dashboard endpoints.
 """
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, case
 from datetime import datetime, timedelta, timezone
 import redis
 import json
@@ -47,12 +47,12 @@ async def get_statistics(db: Session = Depends(get_db)):
         # Use a single aggregation query instead of multiple COUNT queries
         stats_query = db.query(
             func.count(Vulnerability.id).label('total'),
-            func.count(Vulnerability.id).filter(Vulnerability.exploited_in_the_wild == True).label('exploited'),
-            func.count(Vulnerability.id).filter(Vulnerability.severity == 'CRITICAL').label('critical'),
-            func.count(Vulnerability.id).filter(Vulnerability.severity == 'HIGH').label('high'),
-            func.count(Vulnerability.id).filter(
-                Vulnerability.updated_at >= datetime.now(timezone.utc) - timedelta(days=7)
-            ).label('recent')
+            func.sum(case((Vulnerability.exploited_in_the_wild == True, 1), else_=0)).label('exploited'),
+            func.sum(case((Vulnerability.severity == 'CRITICAL', 1), else_=0)).label('critical'),
+            func.sum(case((Vulnerability.severity == 'HIGH', 1), else_=0)).label('high'),
+            func.sum(case((
+                Vulnerability.updated_at >= datetime.now(timezone.utc) - timedelta(days=7), 1
+            ), else_=0)).label('recent')
         ).filter(Vulnerability.cve_id.like('CVE-%')).one()
         
         total = stats_query.total or 0

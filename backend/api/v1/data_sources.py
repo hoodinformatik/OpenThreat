@@ -5,7 +5,7 @@ API endpoints for data source management.
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 
-from backend.tasks.data_tasks import fetch_bsi_cert_task
+from backend.tasks.data_tasks import fetch_bsi_cert_task, fetch_cisa_kev_task
 from backend.services.nvd_complete_service import get_nvd_service
 from backend.models import User, UserRole
 from backend.dependencies.auth import require_admin
@@ -221,86 +221,13 @@ async def trigger_cisa_kev_fetch():
         Status message with task information.
     """
     try:
-        import cloudscraper
-        from backend.database import get_db
-        from backend.models import Vulnerability
-        
-        # Use cloudscraper to bypass Cloudflare protection
-        scraper = cloudscraper.create_scraper(
-            browser={
-                'browser': 'chrome',
-                'platform': 'windows',
-                'mobile': False
-            }
-        )
-        
-        # Fetch CISA KEV catalog
-        url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-        
-        try:
-            response = scraper.get(url, timeout=60)
-            response.raise_for_status()
-            kev_data = response.json()
-        except Exception as e:
-            raise HTTPException(
-                status_code=503,
-                detail=f"Failed to fetch CISA KEV data: {str(e)}"
-            )
-        
-        vulnerabilities = kev_data.get("vulnerabilities", [])
-        
-        # Update database
-        db = next(get_db())
-        updated_count = 0
-        
-        try:
-            for vuln in vulnerabilities:
-                cve_id = vuln.get("cveID")
-                if not cve_id:
-                    continue
-                
-                # Find CVE in database
-                existing = db.query(Vulnerability).filter(
-                    Vulnerability.cve_id == cve_id
-                ).first()
-                
-                if existing:
-                    existing.exploited_in_the_wild = True
-                    
-                    # Add CISA source if not present
-                    sources = existing.sources or []
-                    if "cisa_kev" not in sources:
-                        sources.append("cisa_kev")
-                        existing.sources = sources
-                    
-                    # Recalculate priority (exploitation increases priority)
-                    from backend.services.nvd_complete_service import NVDCompleteService
-                    service = NVDCompleteService()
-                    existing.priority_score = service._calculate_priority(
-                        existing.cvss_score,
-                        existing.severity,
-                        existing.published_at.isoformat() if existing.published_at else None,
-                        exploited=True
-                    )
-                    
-                    updated_count += 1
-            
-            db.commit()
-            
-            return {
-                "status": "success",
-                "message": f"Updated {updated_count} CVEs with CISA KEV data",
-                "source": "cisa_kev",
-                "total_kev_entries": len(vulnerabilities),
-                "updated_in_db": updated_count
-            }
-            
-        except Exception as e:
-            db.rollback()
-            raise e
-        finally:
-            db.close()
-            
+        task = fetch_cisa_kev_task.delay()
+        return {
+            "status": "queued",
+            "task_id": task.id,
+            "message": "CISA KEV fetch task started",
+            "source": "cisa_kev"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -52,6 +52,11 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.fetch_bsi_cert",
         "schedule": crontab(minute=0, hour=8),  # Daily at 08:00 UTC
     },
+    # Fetch CISA KEV (Known Exploited Vulnerabilities) daily at 09:00 UTC
+    "fetch-cisa-kev": {
+        "task": "tasks.fetch_cisa_kev",
+        "schedule": crontab(minute=0, hour=9),  # Daily at 09:00 UTC
+    },
     
     # LLM Processing Tasks - Only for NEW CVEs
     # Historical CVEs are marked as processed (skip LLM)

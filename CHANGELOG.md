@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CISA KEV integration** via NVD API for tracking exploited vulnerabilities
+  - Automatic daily updates at 09:00 UTC via Celery Beat
+  - 1,442+ actively exploited CVEs tracked
+  - Priority score boost for exploited vulnerabilities
+  - New service: `backend/services/cisa_kev_service.py`
+  - New task: `fetch_cisa_kev_task` in `backend/tasks/data_tasks.py`
+  - Setup documentation: `docs/KEV_SETUP.md`
 - BSI CERT-Bund integration for German security advisories
 - LLM-powered vulnerability descriptions
 - Priority scoring system
@@ -17,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - BSI advisories page in frontend
 
 ### Changed
+- **Fixed stats API bug**: `exploited_vulnerabilities` now correctly counts exploited CVEs
+  - Changed from `func.count().filter()` to `func.sum(case())` in SQLAlchemy
+  - Stats endpoint now shows accurate exploitation data
 - Migrated from old Data_Sample_Connectors to new service architecture
 - Improved API documentation
 - Updated frontend with modern UI components

@@ -61,6 +61,15 @@ jobs:
           echo "🔄 Running database migrations..."
           docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head || echo "⚠️ Migration failed or already up to date"
           
+          echo "📊 Checking if KEV data needs initialization..."
+          if docker compose -f docker-compose.prod.yml exec -T backend python3 scripts/check_kev_status.py > /tmp/kev_count.txt 2>&1; then
+            KEV_COUNT=$(cat /tmp/kev_count.txt)
+            echo "✓ KEV data already initialized ($KEV_COUNT exploited CVEs)"
+          else
+            echo "🔐 Initializing CISA KEV data (first deployment)..."
+            docker compose -f docker-compose.prod.yml exec -T backend python3 scripts/fetch_cisa_kev.py || echo "⚠️ KEV initialization failed - run manually: python3 scripts/fetch_cisa_kev.py"
+          fi
+          
           echo "✅ Deployment completed!"
         EOF
 
