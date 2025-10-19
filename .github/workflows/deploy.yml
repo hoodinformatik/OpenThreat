@@ -12,7 +12,7 @@ jobs:
     name: Deploy to Server
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -35,32 +35,36 @@ jobs:
         ssh $SERVER_USER@$SERVER_IP << 'EOF'
           set -e  # Exit on error
           cd /home/openthreat/OpenThreat
-          
+
           # Check if .env file exists
           if [ ! -f .env ]; then
             echo "❌ Error: .env file not found!"
             echo "Please create .env file on the server first."
             exit 1
           fi
-          
+
           echo "📥 Pulling latest changes..."
           git pull origin main
-          
+
           echo "🛑 Stopping containers..."
           docker compose -f docker-compose.prod.yml down || true
-          
+
+          echo "🧹 Cleaning up Docker resources..."
+          docker system prune -af --volumes || true
+          docker builder prune -af || true
+
           echo "🔨 Building images..."
           docker compose -f docker-compose.prod.yml build --no-cache backend frontend
-          
+
           echo "🚀 Starting containers..."
           docker compose -f docker-compose.prod.yml up -d
-          
+
           echo "⏳ Waiting for backend to be ready..."
           sleep 10
-          
+
           echo "🔄 Running database migrations..."
           docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head || echo "⚠️ Migration failed or already up to date"
-          
+
           echo "📊 Checking if KEV data needs initialization..."
           if docker compose -f docker-compose.prod.yml exec -T backend python3 scripts/check_kev_status.py > /tmp/kev_count.txt 2>&1; then
             KEV_COUNT=$(cat /tmp/kev_count.txt)
@@ -69,7 +73,7 @@ jobs:
             echo "🔐 Initializing CISA KEV data (first deployment)..."
             docker compose -f docker-compose.prod.yml exec -T backend python3 scripts/fetch_cisa_kev.py || echo "⚠️ KEV initialization failed - run manually: python3 scripts/fetch_cisa_kev.py"
           fi
-          
+
           echo "✅ Deployment completed!"
         EOF
 
@@ -77,7 +81,7 @@ jobs:
       run: |
         echo "🏥 Running health check..."
         sleep 15
-        
+
         # Try health check with retries
         for i in {1..5}; do
           if curl -f -s http://${{ secrets.SERVER_IP }}/health > /dev/null; then
@@ -87,7 +91,7 @@ jobs:
           echo "⏳ Attempt $i/5 failed, retrying in 10s..."
           sleep 10
         done
-        
+
         echo "❌ Health check failed after 5 attempts"
         exit 1
 
