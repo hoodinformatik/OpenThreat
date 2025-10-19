@@ -87,7 +87,18 @@ app.add_api_route(
 )
 
 # Include routers
-from .api import admin, auth, comments, csrf, feeds, health, search, stats, tasks, vulnerabilities
+from .api import (
+    admin,
+    auth,
+    comments,
+    csrf,
+    feeds,
+    health,
+    search,
+    stats,
+    tasks,
+    vulnerabilities,
+)
 from .api.v1 import data_sources, llm
 
 app.include_router(health.router, tags=["Health"])
@@ -125,6 +136,18 @@ async def root():
 async def startup_event():
     """Startup event handler."""
     logger.info("🚀 OpenThreat API starting...")
+
+    # Run database migrations
+    try:
+        from .migrations.run_migrations import run_migrations
+
+        logger.info("🔄 Running database migrations...")
+        run_migrations()
+        logger.info("✅ Database migrations completed")
+    except Exception as e:
+        logger.warning(f"⚠️  Migration warning: {e}")
+        # Don't fail startup if migrations have issues
+
     logger.info(f"📊 Database: {os.getenv('DATABASE_URL', 'Not configured')}")
     logger.info(f"🌐 CORS Origins: {allowed_origins}")
     logger.info(f"📝 Log Level: {os.getenv('LOG_LEVEL', 'INFO')}")
