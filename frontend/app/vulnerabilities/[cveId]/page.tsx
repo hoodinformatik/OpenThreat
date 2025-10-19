@@ -27,6 +27,7 @@ import {
   generateActionPlan,
   explainCVE,
 } from "@/lib/explanations";
+import { VulnerabilityComments } from "@/components/VulnerabilityComments";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 
@@ -415,6 +416,9 @@ export default async function VulnerabilityDetailPage({
           </dl>
         </CardContent>
       </Card>
+
+      {/* Comments Section */}
+      <VulnerabilityComments cveId={cveId} />
     </div>
   );
 }
