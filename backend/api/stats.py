@@ -43,53 +43,34 @@ async def get_statistics(db: Session = Depends(get_db)):
     except Exception as e:
         print(f"Cache read error: {e}")
 
-    # Cache miss - calculate stats with optimized single query
+    # Cache miss - read from pre-calculated stats cache table (instant!)
     try:
-        # Use a single aggregation query instead of multiple COUNT queries
-        stats_query = (
-            db.query(
-                func.count(Vulnerability.id).label("total"),
-                func.sum(
-                    case((Vulnerability.exploited_in_the_wild == True, 1), else_=0)
-                ).label("exploited"),
-                func.sum(
-                    case((Vulnerability.severity == "CRITICAL", 1), else_=0)
-                ).label("critical"),
-                func.sum(case((Vulnerability.severity == "HIGH", 1), else_=0)).label(
-                    "high"
-                ),
-                func.sum(
-                    case(
-                        (
-                            Vulnerability.updated_at
-                            >= datetime.now(timezone.utc) - timedelta(days=7),
-                            1,
-                        ),
-                        else_=0,
-                    )
-                ).label("recent"),
-            )
-            .filter(Vulnerability.cve_id.like("CVE-%"))
-            .one()
-        )
+        # Read from stats cache table instead of scanning 314k rows
+        cache_row = db.execute(
+            "SELECT * FROM vulnerability_stats_cache WHERE id = 1"
+        ).fetchone()
 
-        total = stats_query.total or 0
-        exploited = stats_query.exploited or 0
-        critical = stats_query.critical or 0
-        high = stats_query.high or 0
-        recent = stats_query.recent or 0
+        if cache_row:
+            total = cache_row[1]  # total_vulnerabilities
+            exploited = cache_row[2]  # exploited_vulnerabilities
+            critical = cache_row[3]  # critical_vulnerabilities
+            high = cache_row[4]  # high_vulnerabilities
+            medium = cache_row[5]  # medium_vulnerabilities
+            low = cache_row[6]  # low_vulnerabilities
+            unknown = cache_row[7]  # unknown_vulnerabilities
+            recent = cache_row[8]  # recent_updates
 
-        # Severity breakdown - separate query but still fast
-        severity_counts = (
-            db.query(Vulnerability.severity, func.count(Vulnerability.id))
-            .filter(Vulnerability.cve_id.like("CVE-%"))
-            .group_by(Vulnerability.severity)
-            .all()
-        )
-
-        by_severity = {
-            severity or "UNKNOWN": count for severity, count in severity_counts
-        }
+            by_severity = {
+                "CRITICAL": critical,
+                "HIGH": high,
+                "MEDIUM": medium,
+                "LOW": low,
+                "UNKNOWN": unknown,
+            }
+        else:
+            # Fallback if cache table is empty
+            total = exploited = critical = high = recent = 0
+            by_severity = {}
 
         # Last update timestamp
         last_run = (

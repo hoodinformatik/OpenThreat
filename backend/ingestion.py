@@ -268,6 +268,14 @@ def run_ingestion(
 
         db.commit()
 
+        # Refresh stats cache after successful ingestion
+        try:
+            db.execute("SELECT refresh_vulnerability_stats_cache()")
+            db.commit()
+            print("Stats cache refreshed successfully")
+        except Exception as cache_error:
+            print(f"Warning: Failed to refresh stats cache: {cache_error}")
+
         print(f"Ingestion complete: {stats}")
 
     except Exception as e:
