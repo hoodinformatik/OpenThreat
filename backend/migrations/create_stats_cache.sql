@@ -41,7 +41,7 @@ BEGIN
         COUNT(*) FILTER (WHERE severity = 'MEDIUM'),
         COUNT(*) FILTER (WHERE severity = 'LOW'),
         COUNT(*) FILTER (WHERE severity IS NULL OR severity = 'UNKNOWN'),
-        COUNT(*) FILTER (WHERE updated_at >= NOW() - INTERVAL '7 days')
+        COUNT(*) FILTER (WHERE published_at >= NOW() - INTERVAL '7 days')
     INTO
         v_total,
         v_exploited,
@@ -73,9 +73,9 @@ $$ LANGUAGE plpgsql;
 -- Initial calculation
 SELECT refresh_vulnerability_stats_cache();
 
--- Create index on updated_at for recent updates query
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vulnerabilities_updated_at
-ON vulnerabilities (updated_at DESC)
+-- Create index on published_at for recent updates query
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vulnerabilities_published_at
+ON vulnerabilities (published_at DESC)
 WHERE cve_id LIKE 'CVE-%';
 
 ANALYZE vulnerability_stats_cache;
