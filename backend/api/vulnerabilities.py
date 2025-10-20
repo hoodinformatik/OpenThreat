@@ -2,19 +2,30 @@
 Vulnerability endpoints with input validation.
 """
 
+import json
 from typing import Optional
 
+import redis
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 
-from ..database import get_db
+from ..database import REDIS_URL, get_db
 from ..models import Vulnerability
 from ..schemas import PaginatedResponse, VulnerabilityDetail
 from ..schemas.enums import SeverityEnum, SortOrderEnum, VulnerabilitySortFieldEnum
 from ..utils.validators import validate_cve_id, validate_page_params
 
 router = APIRouter()
+
+# Redis client for caching
+try:
+    redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+except Exception as e:
+    print(f"Redis connection error: {e}")
+    redis_client = None
+
+COUNT_CACHE_TTL = 300  # 5 minutes
 
 
 @router.get("/vulnerabilities", response_model=PaginatedResponse)
@@ -55,8 +66,25 @@ async def list_vulnerabilities(
     if exploited is not None:
         query = query.filter(Vulnerability.exploited_in_the_wild == exploited)
 
-    # Get total count
-    total = query.count()
+    # Get total count with caching for filtered queries
+    cache_key = f"vuln:count:{severity}:{exploited}:{sort_by.value}"
+    total = None
+
+    if redis_client:
+        try:
+            cached_total = redis_client.get(cache_key)
+            if cached_total:
+                total = int(cached_total)
+        except Exception:
+            pass
+
+    if total is None:
+        total = query.count()
+        if redis_client:
+            try:
+                redis_client.setex(cache_key, COUNT_CACHE_TTL, str(total))
+            except Exception:
+                pass
 
     # Apply sorting with validated enum (safe from SQL injection)
     sort_column = getattr(Vulnerability, sort_by.value)

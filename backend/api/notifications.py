@@ -7,18 +7,28 @@ import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 
+import redis
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session, joinedload
 
-from ..database import get_db
+from ..database import REDIS_URL, get_db
 from ..models import Comment, Notification, User
 from ..utils.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Redis client for caching
+try:
+    redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+except Exception as e:
+    logger.error(f"Redis connection error: {e}")
+    redis_client = None
+
+UNREAD_COUNT_CACHE_TTL = 60  # 1 minute cache for unread count
 
 
 # ============================================================================
@@ -186,6 +196,14 @@ async def mark_notifications_read(
 
     db.commit()
 
+    # Invalidate cache
+    if redis_client and updated > 0:
+        try:
+            cache_key = f"notif:unread:{current_user.id}"
+            redis_client.delete(cache_key)
+        except Exception as e:
+            logger.warning(f"Cache invalidation error: {e}")
+
     logger.info(
         f"User {current_user.username} marked {updated} notification(s) as read"
     )
@@ -214,6 +232,14 @@ async def mark_all_notifications_read(
     )
 
     db.commit()
+
+    # Invalidate cache
+    if redis_client and updated > 0:
+        try:
+            cache_key = f"notif:unread:{current_user.id}"
+            redis_client.delete(cache_key)
+        except Exception as e:
+            logger.warning(f"Cache invalidation error: {e}")
 
     logger.info(
         f"User {current_user.username} marked all {updated} notification(s) as read"
@@ -263,12 +289,32 @@ async def get_unread_count(
     """
     Get the count of unread notifications for the current user.
     Useful for badge display.
+    Cached for 1 minute to reduce database load.
     """
+    cache_key = f"notif:unread:{current_user.id}"
+
+    # Try to get from cache
+    if redis_client:
+        try:
+            cached_count = redis_client.get(cache_key)
+            if cached_count is not None:
+                return {"unread_count": int(cached_count)}
+        except Exception as e:
+            logger.warning(f"Cache read error: {e}")
+
+    # Cache miss - query database
     count = (
         db.query(func.count(Notification.id))
         .filter(Notification.user_id == current_user.id, Notification.is_read == False)
         .scalar()
         or 0
     )
+
+    # Store in cache
+    if redis_client:
+        try:
+            redis_client.setex(cache_key, UNREAD_COUNT_CACHE_TTL, str(count))
+        except Exception as e:
+            logger.warning(f"Cache write error: {e}")
 
     return {"unread_count": count}

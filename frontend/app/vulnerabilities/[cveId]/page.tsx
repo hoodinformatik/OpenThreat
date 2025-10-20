@@ -37,7 +37,7 @@ const CLIENT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001
 async function fetchVulnerability(cveId: string): Promise<VulnerabilityDetail> {
   // Use internal Docker URL for server-side rendering
   const res = await fetch(`${SERVER_API_URL}/api/v1/vulnerabilities/${cveId}`, {
-    next: { revalidate: 60 },
+    next: { revalidate: 3600 }, // Cache for 1 hour - CVE data rarely changes
   });
 
   if (!res.ok) {
