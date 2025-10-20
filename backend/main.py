@@ -93,12 +93,14 @@ from .api import (
     bookmarks,
     comments,
     csrf,
+    cve_votes,
     feeds,
     health,
     notifications,
     search,
     stats,
     tasks,
+    trending,
     vulnerabilities,
 )
 from .api.v1 import data_sources, llm
@@ -117,6 +119,8 @@ app.include_router(feeds.router, prefix="/api/v1", tags=["Feeds"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["Tasks"])
 app.include_router(llm.router, prefix="/api/v1", tags=["LLM Processing"])
 app.include_router(data_sources.router, prefix="/api/v1", tags=["Data Sources"])
+app.include_router(cve_votes.router, prefix="/api/v1", tags=["CVE Voting"])
+app.include_router(trending.router, prefix="/api/v1", tags=["Trending"])
 
 
 @app.get("/")

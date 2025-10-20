@@ -50,9 +50,12 @@ export function NotificationCenter() {
       if (response.ok) {
         const data = await response.json();
         setUnreadCount(data.unread_count);
+      } else if (response.status === 403 || response.status === 401) {
+        // User not authenticated - silently ignore
+        setUnreadCount(0);
       }
     } catch (error) {
-      console.error("Failed to fetch unread count:", error);
+      // Silently fail - don't spam console
     }
   };
 

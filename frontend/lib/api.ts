@@ -15,6 +15,8 @@ export interface Vulnerability {
   published_at?: string;
   modified_at?: string;
   sources?: string[];
+  upvotes: number;
+  downvotes: number;
 }
 
 export interface VulnerabilityDetail extends Vulnerability {
@@ -130,5 +132,82 @@ export async function fetchSeverityDistribution() {
     next: { revalidate: 300 }
   });
   if (!res.ok) throw new Error('Failed to fetch severity distribution');
+  return res.json();
+}
+
+// CVE Voting API
+export interface CVEVoteResponse {
+  cve_id: string;
+  upvotes: number;
+  downvotes: number;
+  user_vote?: number | null;
+}
+
+export async function voteCVE(cveId: string, voteType: 1 | -1, token: string): Promise<CVEVoteResponse> {
+  const res = await fetch(`${API_URL}/api/v1/vulnerabilities/${cveId}/vote`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ vote_type: voteType }),
+  });
+  if (!res.ok) throw new Error('Failed to vote on CVE');
+  return res.json();
+}
+
+export async function getCVEVoteStatus(cveId: string, token?: string): Promise<CVEVoteResponse> {
+  const headers: HeadersInit = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_URL}/api/v1/vulnerabilities/${cveId}/vote`, {
+    headers,
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error('Failed to get CVE vote status');
+  return res.json();
+}
+
+export async function removeCVEVote(cveId: string, token: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/v1/vulnerabilities/${cveId}/vote`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Failed to remove vote');
+}
+
+// Trending CVEs API
+export type TimeRange = 'today' | 'this_week' | 'this_month' | 'all_time';
+export type TrendingType = 'hot' | 'top';
+
+export async function fetchTrendingCVEs(params: {
+  trending_type: TrendingType;
+  time_range?: TimeRange;
+  page?: number;
+  page_size?: number;
+}): Promise<PaginatedResponse<Vulnerability>> {
+  const searchParams = new URLSearchParams();
+  searchParams.append('time_range', params.time_range || 'this_week');
+  if (params.page) searchParams.append('page', String(params.page));
+  if (params.page_size) searchParams.append('page_size', String(params.page_size));
+
+  const res = await fetch(
+    `${API_URL}/api/v1/vulnerabilities/trending/${params.trending_type}?${searchParams}`,
+    { cache: 'no-store' }
+  );
+  if (!res.ok) throw new Error('Failed to fetch trending CVEs');
+  return res.json();
+}
+
+export async function fetchTrendingStats(timeRange: TimeRange = 'this_week') {
+  const res = await fetch(
+    `${API_URL}/api/v1/vulnerabilities/trending/stats?time_range=${timeRange}`,
+    { next: { revalidate: 60 } }
+  );
+  if (!res.ok) throw new Error('Failed to fetch trending stats');
   return res.json();
 }

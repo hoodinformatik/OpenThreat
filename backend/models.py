@@ -142,6 +142,10 @@ class Vulnerability(Base):
         DateTime(timezone=True), nullable=True
     )  # When LLM processing occurred
 
+    # Vote counts (denormalized for performance)
+    upvotes = Column(Integer, default=0, nullable=False)
+    downvotes = Column(Integer, default=0, nullable=False)
+
     # Metadata
     created_at = Column(
         DateTime(timezone=True),
@@ -545,6 +549,54 @@ class Bookmark(Base):
         Index("idx_bookmarks_user_created", "user_id", "created_at"),
         {"extend_existing": True},
     )
+
+
+class CVEVote(Base):
+    """
+    Votes on CVEs (upvote/downvote).
+    One vote per user per CVE.
+    """
+
+    __tablename__ = "cve_votes"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Relationships
+    cve_id = Column(
+        String(50), ForeignKey("vulnerabilities.cve_id"), nullable=False, index=True
+    )
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    # Vote type: 1 for upvote, -1 for downvote
+    vote_type = Column(Integer, nullable=False)  # 1 or -1
+
+    # Metadata
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationships
+    vulnerability = relationship("Vulnerability", backref="votes")
+    user = relationship("User", backref="cve_votes")
+
+    # Constraints: one vote per user per CVE
+    __table_args__ = (
+        Index("idx_cve_votes_unique", "cve_id", "user_id", unique=True),
+        Index("idx_cve_votes_user", "user_id"),
+        Index("idx_cve_votes_cve_created", "cve_id", "created_at"),
+    )
+
+    def __repr__(self):
+        vote_str = "upvote" if self.vote_type == 1 else "downvote"
+        return f"<CVEVote(id={self.id}, cve_id={self.cve_id}, {vote_str})>"
 
 
 class Notification(Base):

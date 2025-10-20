@@ -88,8 +88,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('auth_token');
+
+    // Clear all vote caches
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('vote_')) {
+        localStorage.removeItem(key);
+      }
+    });
+
     setToken(null);
     setUser(null);
+
+    // Dispatch custom event to notify components
+    window.dispatchEvent(new Event('auth-logout'));
   };
 
   return (
