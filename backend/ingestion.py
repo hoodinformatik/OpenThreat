@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from .database import SessionLocal
@@ -270,7 +270,7 @@ def run_ingestion(
 
         # Refresh stats cache after successful ingestion
         try:
-            db.execute("SELECT refresh_vulnerability_stats_cache()")
+            db.execute(text("SELECT refresh_vulnerability_stats_cache()"))
             db.commit()
             print("Stats cache refreshed successfully")
         except Exception as cache_error:

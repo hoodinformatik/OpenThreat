@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 import redis
 from fastapi import APIRouter, Depends
-from sqlalchemy import case, desc, func
+from sqlalchemy import case, desc, func, text
 from sqlalchemy.orm import Session
 
 from ..database import REDIS_URL, get_db
@@ -47,7 +47,7 @@ async def get_statistics(db: Session = Depends(get_db)):
     try:
         # Read from stats cache table instead of scanning 314k rows
         cache_row = db.execute(
-            "SELECT * FROM vulnerability_stats_cache WHERE id = 1"
+            text("SELECT * FROM vulnerability_stats_cache WHERE id = 1")
         ).fetchone()
 
         if cache_row:
