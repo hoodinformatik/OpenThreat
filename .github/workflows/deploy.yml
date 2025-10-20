@@ -32,7 +32,7 @@ jobs:
         SERVER_IP: ${{ secrets.SERVER_IP }}
         SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
-        ssh $SERVER_USER@$SERVER_IP << 'EOF'
+        ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o TCPKeepAlive=yes $SERVER_USER@$SERVER_IP << 'EOF'
           set -e  # Exit on error
           cd /home/openthreat/OpenThreat
 
@@ -49,12 +49,8 @@ jobs:
           echo "🛑 Stopping containers..."
           docker compose -f docker-compose.prod.yml down || true
 
-          echo "🧹 Cleaning up Docker resources..."
-          docker system prune -af --volumes || true
-          docker builder prune -af || true
-
           echo "🔨 Building images..."
-          docker compose -f docker-compose.prod.yml build --no-cache backend frontend
+          docker compose -f docker-compose.prod.yml build backend frontend
 
           echo "🚀 Starting containers..."
           docker compose -f docker-compose.prod.yml up -d
