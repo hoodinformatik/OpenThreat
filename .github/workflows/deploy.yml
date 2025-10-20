@@ -75,25 +75,23 @@ jobs:
           fi
 
           echo "✅ Deployment completed!"
+
+          # Health check from server (internal)
+          echo "🏥 Running health check..."
+          sleep 15
+
+          for i in {1..5}; do
+            if curl -f -s http://localhost/health > /dev/null; then
+              echo "✅ Health check passed!"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/5 failed, retrying in 10s..."
+            sleep 10
+          done
+
+          echo "❌ Health check failed after 5 attempts"
+          exit 1
         EOF
-
-    - name: Health check
-      run: |
-        echo "🏥 Running health check..."
-        sleep 15
-
-        # Try health check with retries
-        for i in {1..5}; do
-          if curl -f -s http://${{ secrets.SERVER_IP }}/health > /dev/null; then
-            echo "✅ Health check passed!"
-            exit 0
-          fi
-          echo "⏳ Attempt $i/5 failed, retrying in 10s..."
-          sleep 10
-        done
-
-        echo "❌ Health check failed after 5 attempts"
-        exit 1
 
     - name: Notify success
       if: success()
