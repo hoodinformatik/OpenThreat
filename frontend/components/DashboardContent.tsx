@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, Shield, Clock, Calendar, Filter, X } from "lucide-react";
 import Link from "next/link";
 import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
+import { CVEVoteButton } from "@/components/CVEVoteButton";
+import { fetchTrendingCVEs } from "@/lib/api";
 
 const CLIENT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 
@@ -37,6 +39,9 @@ export function DashboardContent() {
   const [exploited, setExploited] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
 
+  // View mode: 'recent', 'hot', 'top'
+  const [viewMode, setViewMode] = useState<'recent' | 'hot' | 'top'>('recent');
+
   // Track if we've already fetched to prevent double-fetching
   const hasFetched = useRef(false);
 
@@ -47,6 +52,40 @@ export function DashboardContent() {
       fetchInitialData();
     }
   }, []);
+
+  // Fetch trending data when viewMode changes
+  useEffect(() => {
+    if (viewMode !== 'recent') {
+      fetchTrendingData();
+    } else {
+      // Reset to initial data when switching back to recent
+      const cached = getCachedData('vulns:default');
+      if (cached) {
+        setRecentVulns(cached);
+      } else {
+        fetchFilteredVulns("", "");
+      }
+    }
+  }, [viewMode]);
+
+  const fetchTrendingData = async () => {
+    setIsFiltering(true);
+    try {
+      const trendingType = viewMode === 'hot' ? 'hot' : 'top';
+      const response = await fetchTrendingCVEs({
+        trending_type: trendingType,
+        time_range: 'this_week',
+        page: 1,
+        page_size: 20,
+      });
+
+      setRecentVulns(response);
+    } catch (error) {
+      console.error("Failed to fetch trending data:", error);
+    } finally {
+      setIsFiltering(false);
+    }
+  };
 
   const fetchInitialData = async () => {
     try {
@@ -190,8 +229,43 @@ export function DashboardContent() {
       {/* News Feed - Recent Vulnerabilities */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Recent Vulnerabilities</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {viewMode === 'recent' ? 'Recent Vulnerabilities' : viewMode === 'hot' ? '🔥 Hot CVEs' : '🏆 Top CVEs'}
+          </h2>
           <div className="flex items-center gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('recent')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'recent'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Recent
+              </button>
+              <button
+                onClick={() => setViewMode('hot')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'hot'
+                    ? 'bg-white text-orange-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🔥 Hot
+              </button>
+              <button
+                onClick={() => setViewMode('top')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'top'
+                    ? 'bg-white text-yellow-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🏆 Top
+              </button>
+            </div>
             {/* Filter Button */}
             <Button
               variant="outline"
@@ -275,10 +349,23 @@ export function DashboardContent() {
               >
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardContent className="p-6">
-                    {/* Article Title */}
-                    <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors mb-3">
-                      {displayTitle}
-                    </h3>
+                    <div className="flex gap-4">
+                      {/* Vote Buttons */}
+                      <div className="flex-shrink-0" onClick={(e) => e.preventDefault()}>
+                        <CVEVoteButton
+                          cveId={vuln.cve_id}
+                          initialUpvotes={vuln.upvotes || 0}
+                          initialDownvotes={vuln.downvotes || 0}
+                          compact={true}
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Article Title */}
+                        <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors mb-3">
+                          {displayTitle}
+                        </h3>
 
                     {/* Article Description */}
                     <p className="text-gray-700 mb-4 line-clamp-3">
@@ -330,6 +417,8 @@ export function DashboardContent() {
                           {formatDate(vuln.modified_at)}
                         </span>
                       )}
+                    </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

@@ -30,6 +30,8 @@ class VulnerabilityList(VulnerabilityBase):
     simple_title: Optional[str] = None
     simple_description: Optional[str] = None
     llm_processed: bool = False
+    upvotes: int = 0
+    downvotes: int = 0
 
     class Config:
         from_attributes = True
@@ -52,6 +54,8 @@ class VulnerabilityDetail(VulnerabilityBase):
     simple_title: Optional[str] = None
     simple_description: Optional[str] = None
     llm_processed: bool = False
+    upvotes: int = 0
+    downvotes: int = 0
     created_at: datetime
     updated_at: datetime
 
