@@ -26,6 +26,7 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://open-threats.com}
+      - API_URL=http://backend:8001
     restart: unless-stopped
     networks:
       - openthreat-network

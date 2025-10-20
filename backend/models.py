@@ -517,6 +517,36 @@ class CommentVote(Base):
         return f"<CommentVote(id={self.id}, comment_id={self.comment_id}, {vote_str})>"
 
 
+class Bookmark(Base):
+    """
+    User bookmarks for tracking CVEs.
+    """
+
+    __tablename__ = "bookmarks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    cve_id = Column(
+        String(50), ForeignKey("vulnerabilities.cve_id"), nullable=False, index=True
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    notes = Column(Text, nullable=True)
+
+    # Relationships
+    user = relationship("User", backref="bookmarks")
+    vulnerability = relationship("Vulnerability", backref="bookmarks")
+
+    # Constraints
+    __table_args__ = (
+        Index("idx_bookmarks_user_created", "user_id", "created_at"),
+        {"extend_existing": True},
+    )
+
+
 class Notification(Base):
     """
     User notifications for mentions, replies, and other events.

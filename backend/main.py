@@ -90,6 +90,7 @@ app.add_api_route(
 from .api import (
     admin,
     auth,
+    bookmarks,
     comments,
     csrf,
     feeds,
@@ -108,6 +109,7 @@ app.include_router(csrf.router, prefix="/api/v1", tags=["Security"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(vulnerabilities.router, prefix="/api/v1", tags=["Vulnerabilities"])
 app.include_router(comments.router, prefix="/api/v1", tags=["Comments"])
+app.include_router(bookmarks.router, prefix="/api/v1", tags=["Bookmarks"])
 app.include_router(notifications.router, prefix="/api/v1", tags=["Notifications"])
 app.include_router(stats.router, prefix="/api/v1", tags=["Statistics"])
 app.include_router(search.router, prefix="/api/v1", tags=["Search"])

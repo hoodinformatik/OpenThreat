@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
 import type { VulnerabilityDetail } from "@/lib/api";
-import { ExplanationCard } from "@/components/explanation-card";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
   explainSeverity,
@@ -28,11 +27,16 @@ import {
   explainCVE,
 } from "@/lib/explanations";
 import { VulnerabilityComments } from "@/components/VulnerabilityComments";
+import { BookmarkButton } from "@/components/BookmarkButton";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+// Server-side API URL (internal Docker network)
+const SERVER_API_URL = process.env.API_URL || 'http://backend:8001';
+// Client-side API URL (external)
+const CLIENT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 
 async function fetchVulnerability(cveId: string): Promise<VulnerabilityDetail> {
-  const res = await fetch(`${API_URL}/api/v1/vulnerabilities/${cveId}`, {
+  // Use internal Docker URL for server-side rendering
+  const res = await fetch(`${SERVER_API_URL}/api/v1/vulnerabilities/${cveId}`, {
     next: { revalidate: 60 },
   });
 
@@ -53,13 +57,16 @@ export default async function VulnerabilityDetailPage({
 
   return (
     <div className="space-y-6">
-      {/* Back Button */}
-      <Link href="/vulnerabilities">
-        <Button variant="outline" size="sm">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to List
-        </Button>
-      </Link>
+      {/* Back Button and Bookmark */}
+      <div className="flex items-center justify-between">
+        <Link href="/vulnerabilities">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to List
+          </Button>
+        </Link>
+        <BookmarkButton cveId={cveId} size="md" />
+      </div>
 
       {/* Header */}
       <div className="space-y-4">
@@ -71,15 +78,21 @@ export default async function VulnerabilityDetailPage({
               </h1>
               <Tooltip content={explainCVE()} />
               {vuln.severity && (
-                <Badge className={getSeverityBadgeColor(vuln.severity)}>
-                  {vuln.severity}
-                </Badge>
+                <div className="inline-flex items-center space-x-1">
+                  <Badge className={getSeverityBadgeColor(vuln.severity)}>
+                    {vuln.severity}
+                  </Badge>
+                  <Tooltip content={`${explainSeverity(vuln.severity).simple} - ${explainSeverity(vuln.severity).whatItMeans}`} />
+                </div>
               )}
               {vuln.exploited_in_the_wild && (
-                <Badge className="bg-red-100 text-red-800 border-red-300">
-                  <AlertTriangle className="h-4 w-4 mr-1" />
-                  Exploited in Wild
-                </Badge>
+                <div className="inline-flex items-center space-x-1">
+                  <Badge className="bg-red-100 text-red-800 border-red-300">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    Exploited in Wild
+                  </Badge>
+                  <Tooltip content={`${explainExploitation(vuln.exploited_in_the_wild).simple} - ${explainExploitation(vuln.exploited_in_the_wild).whatItMeans}`} />
+                </div>
               )}
               {vuln.sources?.includes("bsi_cert") && (
                 <Badge className="bg-blue-100 text-blue-800 border-blue-300">
@@ -164,16 +177,6 @@ export default async function VulnerabilityDetailPage({
         </div>
       </div>
 
-      {/* Plain Language Explanations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Severity Explanation */}
-        {vuln.severity && (
-          <ExplanationCard explanation={explainSeverity(vuln.severity)} />
-        )}
-
-        {/* Exploitation Explanation */}
-        <ExplanationCard explanation={explainExploitation(vuln.exploited_in_the_wild)} />
-      </div>
 
       {/* Action Plan */}
       {(() => {
