@@ -47,6 +47,13 @@ export default function RootLayout({
                 >
                   Contact
                 </a>
+                {" · "}
+                <a
+                  href="/privacy"
+                  className="text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  Privacy Policy
+                </a>
               </p>
             </footer>
           </div>
