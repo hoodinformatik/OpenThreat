@@ -77,8 +77,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-openthreat}
       - POSTGRES_USER=${POSTGRES_USER:-openthreat}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
+    # SECURITY: Port NOT exposed to host - only accessible within Docker network
+    # To access DB for admin tasks, use: docker compose -f docker-compose.prod.yml exec postgres psql -U openthreat
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -101,8 +101,7 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1000
-    ports:
-      - "6379:6379"
+    # SECURITY: Port NOT exposed to host - only accessible within Docker network
     volumes:
       - redis_data:/data
     restart: unless-stopped
