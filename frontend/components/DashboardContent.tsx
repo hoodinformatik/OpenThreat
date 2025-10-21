@@ -228,16 +228,24 @@ export function DashboardContent() {
 
       {/* News Feed - Recent Vulnerabilities */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {viewMode === 'recent' ? 'Recent Vulnerabilities' : viewMode === 'hot' ? '🔥 Hot CVEs' : '🏆 Top CVEs'}
-          </h2>
-          <div className="flex items-center gap-3">
-            {/* View Mode Toggle */}
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+        {/* Header - Mobile Optimized */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              {viewMode === 'recent' ? 'Recent' : viewMode === 'hot' ? '🔥 Hot' : '🏆 Top'}
+            </h2>
+            <Link href="/vulnerabilities" className="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap">
+              View All →
+            </Link>
+          </div>
+
+          {/* View Mode Toggle + Filter - Mobile Optimized */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+            {/* View Mode Toggle - Compact */}
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
               <button
                 onClick={() => setViewMode('recent')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   viewMode === 'recent'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -247,7 +255,7 @@ export function DashboardContent() {
               </button>
               <button
                 onClick={() => setViewMode('hot')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   viewMode === 'hot'
                     ? 'bg-white text-orange-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -257,7 +265,7 @@ export function DashboardContent() {
               </button>
               <button
                 onClick={() => setViewMode('top')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   viewMode === 'top'
                     ? 'bg-white text-yellow-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -266,20 +274,18 @@ export function DashboardContent() {
                 🏆 Top
               </button>
             </div>
-            {/* Filter Button */}
+
+            {/* Filter Button - Compact */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={hasActiveFilters ? "border-blue-600 text-blue-600" : ""}
+              className={`flex-shrink-0 ${hasActiveFilters ? "border-blue-600 text-blue-600" : ""}`}
             >
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-              {hasActiveFilters && <span className="ml-2 bg-blue-600 text-white rounded-full px-2 py-0.5 text-xs">•</span>}
+              <Filter className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Filter</span>
+              {hasActiveFilters && <span className="ml-1 md:ml-2 bg-blue-600 text-white rounded-full w-2 h-2 md:w-auto md:h-auto md:px-2 md:py-0.5 text-xs">•</span>}
             </Button>
-            <Link href="/vulnerabilities" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View All →
-            </Link>
           </div>
         </div>
 

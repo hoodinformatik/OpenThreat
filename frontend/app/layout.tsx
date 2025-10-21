@@ -20,9 +20,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-gray-50 overflow-x-hidden">
             <Navigation />
-            <main className="container mx-auto px-4 py-8">
+            {/* Padding top for fixed nav */}
+            <main className="container mx-auto px-4 py-8 pt-20 max-w-full overflow-x-hidden">
               {children}
             </main>
             <footer className="border-t mt-12 py-6 text-center text-sm text-gray-600">
@@ -31,16 +32,16 @@ export default function RootLayout({
                 Data sources: CISA KEV, NVD, BSI CERT-Bund
               </p>
               <p className="mt-2">
-                <a 
-                  href="https://github.com/hoodinformatik/OpenThreat" 
-                  target="_blank" 
+                <a
+                  href="https://github.com/hoodinformatik/OpenThreat"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-700 hover:underline"
                 >
                   GitHub
                 </a>
                 {" · "}
-                <a 
+                <a
                   href="mailto:hoodinformatik@gmail.com"
                   className="text-blue-600 hover:text-blue-700 hover:underline"
                 >
