@@ -44,7 +44,8 @@ jobs:
           fi
 
           echo "📥 Pulling latest changes..."
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
 
           echo "🛑 Stopping containers..."
           docker compose -f docker-compose.prod.yml down || true
