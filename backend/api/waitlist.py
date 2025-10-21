@@ -177,7 +177,6 @@ async def verify_email(token: str, db: Session = Depends(get_db)):
     if entry.is_verified:
         return {
             "message": "Email already verified!",
-            "email": entry.email,
             "already_verified": True,
         }
 
@@ -197,7 +196,6 @@ async def verify_email(token: str, db: Session = Depends(get_db)):
 
     return {
         "message": "Email verified successfully! You're on the waitlist.",
-        "email": entry.email,
         "already_verified": False,
     }
 
