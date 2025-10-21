@@ -655,3 +655,34 @@ class Notification(Base):
 
     def __repr__(self):
         return f"<Notification(id={self.id}, user_id={self.user_id}, type={self.type}, is_read={self.is_read})>"
+
+
+class WaitlistEntry(Base):
+    """
+    Waitlist entries for beta launch signups.
+    Uses token-based email verification (link in email).
+    """
+
+    __tablename__ = "waitlist_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+
+    # Email verification via token
+    verification_token = Column(String(64), unique=True, nullable=False, index=True)
+    is_verified = Column(Boolean, default=False, nullable=False, index=True)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    token_expires_at = Column(DateTime(timezone=True), nullable=False)
+
+    # Timestamps
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Launch notification
+    notified = Column(Boolean, default=False, nullable=False)
+
+    def __repr__(self):
+        return f"<WaitlistEntry(email={self.email}, verified={self.is_verified})>"

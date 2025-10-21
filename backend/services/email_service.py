@@ -11,11 +11,42 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
-    """Email service for sending verification codes."""
+    """Email service for sending verification codes and emails."""
 
     def __init__(self):
         self.environment = os.getenv("ENVIRONMENT", "development")
         self.smtp_enabled = os.getenv("SMTP_ENABLED", "false").lower() == "true"
+
+    async def send_email(
+        self, to_email: str, subject: str, html_content: str, text_content: str
+    ) -> bool:
+        """
+        Send email with HTML and text content.
+
+        Args:
+            to_email: Recipient email address
+            subject: Email subject
+            html_content: HTML email body
+            text_content: Plain text email body
+
+        Returns:
+            True if sent successfully
+        """
+        if self.environment == "development" or not self.smtp_enabled:
+            # Development mode: Log to console
+            logger.info("=" * 60)
+            logger.info(f"📧 EMAIL")
+            logger.info(f"To: {to_email}")
+            logger.info(f"Subject: {subject}")
+            logger.info(f"Text Content:\n{text_content}")
+            logger.info("=" * 60)
+            print(f"\n📧 EMAIL to {to_email}: {subject}\n{text_content}\n")
+            return True
+        else:
+            # Production mode: Send actual email
+            return await self._send_smtp_email_html(
+                to_email, subject, html_content, text_content
+            )
 
     async def send_verification_code(
         self, email: str, code: str, verification_type: str = "registration"
@@ -127,6 +158,53 @@ OpenThreat Team
 
         except Exception as e:
             logger.error(f"Failed to send email: {e}")
+            return False
+
+    async def _send_smtp_email_html(
+        self, email: str, subject: str, html_content: str, text_content: str
+    ) -> bool:
+        """
+        Send HTML email via SMTP.
+        """
+        try:
+            import smtplib
+            from email.mime.multipart import MIMEMultipart
+            from email.mime.text import MIMEText
+
+            smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+            smtp_port = int(os.getenv("SMTP_PORT", "587"))
+            smtp_username = os.getenv("SMTP_USERNAME")
+            smtp_password = os.getenv("SMTP_PASSWORD")
+            from_email = os.getenv("SMTP_FROM_EMAIL", smtp_username)
+            from_name = os.getenv("SMTP_FROM_NAME", "OpenThreat")
+
+            if not smtp_username or not smtp_password:
+                logger.error("SMTP credentials not configured")
+                return False
+
+            # Create message
+            msg = MIMEMultipart("alternative")
+            msg["From"] = f"{from_name} <{from_email}>"
+            msg["To"] = email
+            msg["Subject"] = subject
+
+            # Attach both plain text and HTML
+            part1 = MIMEText(text_content, "plain")
+            part2 = MIMEText(html_content, "html")
+            msg.attach(part1)
+            msg.attach(part2)
+
+            # Send email
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_username, smtp_password)
+                server.send_message(msg)
+
+            logger.info(f"HTML email sent successfully to {email}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to send HTML email: {e}")
             return False
 
 

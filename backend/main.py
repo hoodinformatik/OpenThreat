@@ -102,10 +102,12 @@ from .api import (
     tasks,
     trending,
     vulnerabilities,
+    waitlist,
 )
 from .api.v1 import data_sources, llm
 
 app.include_router(health.router, tags=["Health"])
+app.include_router(waitlist.router, prefix="/api/v1/waitlist", tags=["Waitlist"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(csrf.router, prefix="/api/v1", tags=["Security"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
