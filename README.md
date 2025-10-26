@@ -77,6 +77,10 @@ cd OpenThreat
 ```bash
 docker-compose up -d
 ```
+if you use a newer version of docker use this:
+```bash
+docker composer up -d
+```
 
 3. **Set up backend**
 ```bash
