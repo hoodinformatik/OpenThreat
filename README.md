@@ -79,7 +79,7 @@ docker-compose up -d
 ```
 if you use a newer version of docker use this:
 ```bash
-docker composer up -d
+docker compose up -d
 ```
 
 3. **Set up backend**
