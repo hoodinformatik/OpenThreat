@@ -13,12 +13,12 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const links = [
-    { href: "/", label: "Dashboard", icon: BarChart3 },
-    { href: "/vulnerabilities", label: "Vulnerabilities", icon: Shield },
-    { href: "/search", label: "Search", icon: Search },
-    { href: "/bsi-advisories", label: "BSI", icon: Flag },
-    { href: "/feeds", label: "RSS Feeds", icon: Rss },
-    { href: "/about", label: "About", icon: Info },
+    { href: "/", label: "Dashboard", icon: BarChart3, iconColor: "text-blue-600" },
+    { href: "/vulnerabilities", label: "Vulnerabilities", icon: Shield, iconColor: "text-red-600" },
+    { href: "/search", label: "Search", icon: Search, iconColor: "text-purple-600" },
+    { href: "/bsi-advisories", label: "BSI", icon: Flag, iconColor: "text-amber-600" },
+    { href: "/feeds", label: "RSS Feeds", icon: Rss, iconColor: "text-green-600" },
+    { href: "/about", label: "About", icon: Info, iconColor: "text-slate-600" },
   ];
 
   return (
@@ -49,7 +49,7 @@ export function Navigation() {
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className={cn("h-4 w-4", link.iconColor)} />
                       <span>{link.label}</span>
                     </Link>
                   );
@@ -118,7 +118,7 @@ export function Navigation() {
                         : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     )}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className={cn("h-5 w-5", link.iconColor)} />
                     <span>{link.label}</span>
                   </Link>
                 );
