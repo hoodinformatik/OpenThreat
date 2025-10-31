@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { AlertTriangle, Shield, Clock, Calendar, Filter, X } from "lucide-react";
 import Link from "next/link";
 import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
@@ -294,30 +295,34 @@ export function DashboardContent() {
           <Card className="p-4 bg-gradient-to-br from-gray-50 to-white border-gray-200">
             <div className="flex flex-wrap items-center gap-3">
               {/* Severity Filter */}
-              <select
+              <Select
                 value={severity}
-                onChange={(e) => handleSeverityChange(e.target.value)}
+                onChange={handleSeverityChange}
                 disabled={isFiltering}
-                className="px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
-              >
-                <option value="">All Severities</option>
-                <option value="CRITICAL">Critical</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
+                placeholder="All Severities"
+                options={[
+                  { value: "", label: "All Severities" },
+                  { value: "CRITICAL", label: "Critical" },
+                  { value: "HIGH", label: "High" },
+                  { value: "MEDIUM", label: "Medium" },
+                  { value: "LOW", label: "Low" },
+                ]}
+                className="w-48"
+              />
 
               {/* Exploited Filter */}
-              <select
+              <Select
                 value={exploited}
-                onChange={(e) => handleExploitedChange(e.target.value)}
+                onChange={handleExploitedChange}
                 disabled={isFiltering}
-                className="px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
-              >
-                <option value="">All CVEs</option>
-                <option value="true">Exploited Only</option>
-                <option value="false">Not Exploited</option>
-              </select>
+                placeholder="All CVEs"
+                options={[
+                  { value: "", label: "All CVEs" },
+                  { value: "true", label: "Exploited Only" },
+                  { value: "false", label: "Not Exploited" },
+                ]}
+                className="w-48"
+              />
 
               {/* Reset Button */}
               {hasActiveFilters && (

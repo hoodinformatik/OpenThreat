@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { Shield, AlertTriangle, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
 import type { Vulnerability, PaginatedResponse } from "@/lib/api";
@@ -86,20 +87,21 @@ export default function VulnerabilitiesPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Severity
               </label>
-              <select
+              <Select
                 value={severity}
-                onChange={(e) => {
-                  setSeverity(e.target.value);
+                onChange={(value) => {
+                  setSeverity(value);
                   setPage(1);
                 }}
-                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
-              >
-                <option value="">All Severities</option>
-                <option value="CRITICAL">Critical</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
+                placeholder="All Severities"
+                options={[
+                  { value: "", label: "All Severities" },
+                  { value: "CRITICAL", label: "Critical" },
+                  { value: "HIGH", label: "High" },
+                  { value: "MEDIUM", label: "Medium" },
+                  { value: "LOW", label: "Low" },
+                ]}
+              />
             </div>
 
             {/* Exploited Filter */}
@@ -107,18 +109,19 @@ export default function VulnerabilitiesPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Exploitation Status
               </label>
-              <select
+              <Select
                 value={exploited}
-                onChange={(e) => {
-                  setExploited(e.target.value);
+                onChange={(value) => {
+                  setExploited(value);
                   setPage(1);
                 }}
-                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
-              >
-                <option value="">All</option>
-                <option value="true">Exploited in Wild</option>
-                <option value="false">Not Exploited</option>
-              </select>
+                placeholder="All"
+                options={[
+                  { value: "", label: "All" },
+                  { value: "true", label: "Exploited in Wild" },
+                  { value: "false", label: "Not Exploited" },
+                ]}
+              />
             </div>
 
             {/* Sort By */}
@@ -126,16 +129,16 @@ export default function VulnerabilitiesPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Sort By
               </label>
-              <select
+              <Select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
-              >
-                <option value="priority_score">Priority Score</option>
-                <option value="cvss_score">CVSS Score</option>
-                <option value="published_at">Published Date</option>
-                <option value="modified_at">Modified Date</option>
-              </select>
+                onChange={setSortBy}
+                options={[
+                  { value: "priority_score", label: "Priority Score" },
+                  { value: "cvss_score", label: "CVSS Score" },
+                  { value: "published_at", label: "Published Date" },
+                  { value: "modified_at", label: "Modified Date" },
+                ]}
+              />
             </div>
 
             {/* Reset Button */}
