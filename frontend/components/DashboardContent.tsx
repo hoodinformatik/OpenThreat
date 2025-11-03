@@ -291,14 +291,14 @@ export function DashboardContent() {
 
         {/* Minimalist Filter Bar */}
         {showFilters && (
-          <Card className="p-4 bg-gray-50">
+          <Card className="p-4 bg-gradient-to-br from-gray-50 to-white border-gray-200">
             <div className="flex flex-wrap items-center gap-3">
               {/* Severity Filter */}
               <select
                 value={severity}
                 onChange={(e) => handleSeverityChange(e.target.value)}
                 disabled={isFiltering}
-                className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
               >
                 <option value="">All Severities</option>
                 <option value="CRITICAL">Critical</option>
@@ -312,7 +312,7 @@ export function DashboardContent() {
                 value={exploited}
                 onChange={(e) => handleExploitedChange(e.target.value)}
                 disabled={isFiltering}
-                className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
               >
                 <option value="">All CVEs</option>
                 <option value="true">Exploited Only</option>
@@ -326,7 +326,7 @@ export function DashboardContent() {
                   size="sm"
                   onClick={resetFilters}
                   disabled={isFiltering}
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Reset
@@ -334,7 +334,7 @@ export function DashboardContent() {
               )}
 
               {/* Results Count */}
-              <span className="text-sm text-gray-600 ml-auto">
+              <span className="text-sm text-gray-600 ml-auto font-medium">
                 {isFiltering ? "Loading..." : `${recentVulns.total} results`}
               </span>
             </div>

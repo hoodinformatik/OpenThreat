@@ -72,15 +72,18 @@ export default function VulnerabilitiesPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-gradient-to-br from-gray-50 to-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-lg">Filters</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="h-5 w-5 text-blue-600" />
+            Filters
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Severity Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Severity
               </label>
               <select
@@ -89,7 +92,7 @@ export default function VulnerabilitiesPage() {
                   setSeverity(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
               >
                 <option value="">All Severities</option>
                 <option value="CRITICAL">Critical</option>
@@ -101,7 +104,7 @@ export default function VulnerabilitiesPage() {
 
             {/* Exploited Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Exploitation Status
               </label>
               <select
@@ -110,7 +113,7 @@ export default function VulnerabilitiesPage() {
                   setExploited(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
               >
                 <option value="">All</option>
                 <option value="true">Exploited in Wild</option>
@@ -120,13 +123,13 @@ export default function VulnerabilitiesPage() {
 
             {/* Sort By */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Sort By
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
               >
                 <option value="priority_score">Priority Score</option>
                 <option value="cvss_score">CVSS Score</option>
@@ -140,7 +143,7 @@ export default function VulnerabilitiesPage() {
               <Button
                 variant="outline"
                 onClick={resetFilters}
-                className="w-full"
+                className="w-full hover:bg-gray-100 transition-colors"
               >
                 Reset Filters
               </Button>
