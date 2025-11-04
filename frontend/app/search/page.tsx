@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Search, Shield, AlertTriangle, X } from "lucide-react";
 import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
 import type { Vulnerability, PaginatedResponse } from "@/lib/api";
@@ -88,7 +90,10 @@ export default function SearchPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Advanced Search</h1>
+        <div className="flex items-center space-x-3 mb-2">
+          <Search className="h-8 w-8 text-purple-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Advanced Search</h1>
+        </div>
         <p className="text-gray-600 mt-1">
           Search vulnerabilities with multiple filters and criteria
         </p>
@@ -98,7 +103,6 @@ export default function SearchPage() {
       <Card className="bg-gradient-to-br from-gray-50 to-white border-gray-200 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5 text-blue-600" />
             Search Criteria
           </CardTitle>
           <CardDescription className="font-medium">
@@ -133,17 +137,18 @@ export default function SearchPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Severity
                 </label>
-                <select
+                <Select
                   value={severity}
-                  onChange={(e) => setSeverity(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
-                >
-                  <option value="">Any</option>
-                  <option value="CRITICAL">Critical</option>
-                  <option value="HIGH">High</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="LOW">Low</option>
-                </select>
+                  onChange={setSeverity}
+                  placeholder="Any"
+                  options={[
+                    { value: "", label: "Any" },
+                    { value: "CRITICAL", label: "Critical" },
+                    { value: "HIGH", label: "High" },
+                    { value: "MEDIUM", label: "Medium" },
+                    { value: "LOW", label: "Low" },
+                  ]}
+                />
               </div>
 
               {/* Exploited */}
@@ -151,15 +156,16 @@ export default function SearchPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Exploitation Status
                 </label>
-                <select
+                <Select
                   value={exploited}
-                  onChange={(e) => setExploited(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
-                >
-                  <option value="">Any</option>
-                  <option value="true">Exploited in Wild</option>
-                  <option value="false">Not Exploited</option>
-                </select>
+                  onChange={setExploited}
+                  placeholder="Any"
+                  options={[
+                    { value: "", label: "Any" },
+                    { value: "true", label: "Exploited in Wild" },
+                    { value: "false", label: "Not Exploited" },
+                  ]}
+                />
               </div>
 
               {/* Vendor */}
@@ -203,7 +209,7 @@ export default function SearchPage() {
                   min="0"
                   max="10"
                   step="0.1"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
               </div>
 
@@ -220,7 +226,7 @@ export default function SearchPage() {
                   min="0"
                   max="10"
                   step="0.1"
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
               </div>
 
@@ -229,11 +235,10 @@ export default function SearchPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Published After
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={publishedAfter}
-                  onChange={(e) => setPublishedAfter(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                  onChange={setPublishedAfter}
+                  placeholder="Select start date"
                 />
               </div>
 
@@ -242,11 +247,10 @@ export default function SearchPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Published Before
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={publishedBefore}
-                  onChange={(e) => setPublishedBefore(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                  onChange={setPublishedBefore}
+                  placeholder="Select end date"
                 />
               </div>
             </div>

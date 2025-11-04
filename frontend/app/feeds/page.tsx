@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Rss, AlertTriangle, TrendingUp, Copy, ExternalLink } from "lucide-react";
+import { Rss, AlertTriangle, TrendingUp, Copy, ExternalLink, Shield } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 
@@ -11,8 +11,8 @@ const feeds = [
     title: "All Recent Vulnerabilities",
     description: "Latest vulnerabilities added to the database",
     url: `${API_URL}/api/v1/feeds/rss`,
-    icon: Rss,
-    color: "text-blue-600",
+    icon: Shield,
+    color: "text-red-600",
   },
   {
     title: "Exploited Vulnerabilities",
@@ -35,7 +35,12 @@ export default function FeedsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">RSS Feeds</h1>
+        <div className="flex items-center space-x-3 mb-2">
+          <Rss className="h-8 w-8 text-green-600" />
+          <h1 className="text-3xl font-bold text-gray-900">
+            RSS Feeds
+          </h1>
+        </div>
         <p className="text-gray-600 mt-1">
           Subscribe to vulnerability feeds in your favorite RSS reader
         </p>
@@ -45,7 +50,7 @@ export default function FeedsPage() {
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="pt-6">
           <div className="flex items-start space-x-3">
-            <Rss className="h-5 w-5 text-blue-600 mt-0.5" />
+            <Rss className="h-5 w-5 text-green-600 mt-0.5" />
             <div>
               <h3 className="font-semibold text-blue-900 mb-1">
                 How to use RSS feeds
