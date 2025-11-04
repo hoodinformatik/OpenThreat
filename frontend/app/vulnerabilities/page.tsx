@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { Shield, AlertTriangle, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
 import type { Vulnerability, PaginatedResponse } from "@/lib/api";
@@ -58,7 +59,10 @@ export default function VulnerabilitiesPage() {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Vulnerabilities</h1>
+          <div className="flex items-center space-x-3 mb-2">
+            <Shield className="h-8 w-8 text-red-600" />
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Vulnerabilities</h1>
+          </div>
           <Link href="/search" className="hidden md:block">
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
@@ -72,67 +76,72 @@ export default function VulnerabilitiesPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-gradient-to-br from-gray-50 to-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-lg">Filters</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="h-5 w-5 text-blue-600" />
+            Filters
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Severity Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Severity
               </label>
-              <select
+              <Select
                 value={severity}
-                onChange={(e) => {
-                  setSeverity(e.target.value);
+                onChange={(value) => {
+                  setSeverity(value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Severities</option>
-                <option value="CRITICAL">Critical</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
+                placeholder="All Severities"
+                options={[
+                  { value: "", label: "All Severities" },
+                  { value: "CRITICAL", label: "Critical" },
+                  { value: "HIGH", label: "High" },
+                  { value: "MEDIUM", label: "Medium" },
+                  { value: "LOW", label: "Low" },
+                ]}
+              />
             </div>
 
             {/* Exploited Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Exploitation Status
               </label>
-              <select
+              <Select
                 value={exploited}
-                onChange={(e) => {
-                  setExploited(e.target.value);
+                onChange={(value) => {
+                  setExploited(value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All</option>
-                <option value="true">Exploited in Wild</option>
-                <option value="false">Not Exploited</option>
-              </select>
+                placeholder="All"
+                options={[
+                  { value: "", label: "All" },
+                  { value: "true", label: "Exploited in Wild" },
+                  { value: "false", label: "Not Exploited" },
+                ]}
+              />
             </div>
 
             {/* Sort By */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Sort By
               </label>
-              <select
+              <Select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="priority_score">Priority Score</option>
-                <option value="cvss_score">CVSS Score</option>
-                <option value="published_at">Published Date</option>
-                <option value="modified_at">Modified Date</option>
-              </select>
+                onChange={setSortBy}
+                options={[
+                  { value: "priority_score", label: "Priority Score" },
+                  { value: "cvss_score", label: "CVSS Score" },
+                  { value: "published_at", label: "Published Date" },
+                  { value: "modified_at", label: "Modified Date" },
+                ]}
+              />
             </div>
 
             {/* Reset Button */}
@@ -140,7 +149,7 @@ export default function VulnerabilitiesPage() {
               <Button
                 variant="outline"
                 onClick={resetFilters}
-                className="w-full"
+                className="w-full hover:bg-gray-100 transition-colors"
               >
                 Reset Filters
               </Button>

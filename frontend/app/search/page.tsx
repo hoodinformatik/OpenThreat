@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Search, Shield, AlertTriangle, X } from "lucide-react";
 import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
 import type { Vulnerability, PaginatedResponse } from "@/lib/api";
@@ -88,17 +90,22 @@ export default function SearchPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Advanced Search</h1>
+        <div className="flex items-center space-x-3 mb-2">
+          <Search className="h-8 w-8 text-purple-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Advanced Search</h1>
+        </div>
         <p className="text-gray-600 mt-1">
           Search vulnerabilities with multiple filters and criteria
         </p>
       </div>
 
       {/* Search Form */}
-      <Card>
+      <Card className="bg-gradient-to-br from-gray-50 to-white border-gray-200 shadow-lg">
         <CardHeader>
-          <CardTitle>Search Criteria</CardTitle>
-          <CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            Search Criteria
+          </CardTitle>
+          <CardDescription className="font-medium">
             {activeFiltersCount > 0
               ? `${activeFiltersCount} filter${activeFiltersCount > 1 ? "s" : ""} active`
               : "Enter your search criteria below"}
@@ -108,17 +115,17 @@ export default function SearchPage() {
           <form onSubmit={handleSearch} className="space-y-6">
             {/* Text Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Search Query
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="CVE ID, title, or description..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
             </div>
@@ -127,41 +134,43 @@ export default function SearchPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Severity */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Severity
                 </label>
-                <select
+                <Select
                   value={severity}
-                  onChange={(e) => setSeverity(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Any</option>
-                  <option value="CRITICAL">Critical</option>
-                  <option value="HIGH">High</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="LOW">Low</option>
-                </select>
+                  onChange={setSeverity}
+                  placeholder="Any"
+                  options={[
+                    { value: "", label: "Any" },
+                    { value: "CRITICAL", label: "Critical" },
+                    { value: "HIGH", label: "High" },
+                    { value: "MEDIUM", label: "Medium" },
+                    { value: "LOW", label: "Low" },
+                  ]}
+                />
               </div>
 
               {/* Exploited */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Exploitation Status
                 </label>
-                <select
+                <Select
                   value={exploited}
-                  onChange={(e) => setExploited(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Any</option>
-                  <option value="true">Exploited in Wild</option>
-                  <option value="false">Not Exploited</option>
-                </select>
+                  onChange={setExploited}
+                  placeholder="Any"
+                  options={[
+                    { value: "", label: "Any" },
+                    { value: "true", label: "Exploited in Wild" },
+                    { value: "false", label: "Not Exploited" },
+                  ]}
+                />
               </div>
 
               {/* Vendor */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Vendor
                 </label>
                 <input
@@ -169,13 +178,13 @@ export default function SearchPage() {
                   value={vendor}
                   onChange={(e) => setVendor(e.target.value)}
                   placeholder="e.g., microsoft, apache"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
 
               {/* Product */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Product
                 </label>
                 <input
@@ -183,13 +192,13 @@ export default function SearchPage() {
                   value={product}
                   onChange={(e) => setProduct(e.target.value)}
                   placeholder="e.g., windows, linux"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
 
               {/* Min CVSS */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Min CVSS Score
                 </label>
                 <input
@@ -200,13 +209,13 @@ export default function SearchPage() {
                   min="0"
                   max="10"
                   step="0.1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
               </div>
 
               {/* Max CVSS */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Max CVSS Score
                 </label>
                 <input
@@ -217,40 +226,38 @@ export default function SearchPage() {
                   min="0"
                   max="10"
                   step="0.1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 placeholder:text-gray-400 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
               </div>
 
               {/* Published After */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Published After
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={publishedAfter}
-                  onChange={(e) => setPublishedAfter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={setPublishedAfter}
+                  placeholder="Select start date"
                 />
               </div>
 
               {/* Published Before */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Published Before
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={publishedBefore}
-                  onChange={(e) => setPublishedBefore(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={setPublishedBefore}
+                  placeholder="Select end date"
                 />
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center space-x-4">
-              <Button type="submit" disabled={loading}>
+            <div className="flex items-center space-x-4 pt-2">
+              <Button type="submit" disabled={loading} className="shadow-md">
                 <Search className="h-4 w-4 mr-2" />
                 {loading ? "Searching..." : "Search"}
               </Button>
@@ -259,6 +266,7 @@ export default function SearchPage() {
                 variant="outline"
                 onClick={resetSearch}
                 disabled={loading}
+                className="hover:bg-gray-100 transition-colors"
               >
                 <X className="h-4 w-4 mr-2" />
                 Reset

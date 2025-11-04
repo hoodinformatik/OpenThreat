@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, AlertTriangle, Shield, Calendar } from "lucide-react";
+import { Flag, ExternalLink, Shield } from "lucide-react";
 
 interface BSIAdvisory {
   advisory_id: string;
@@ -61,7 +60,7 @@ export default function BSIAdvisoriesPage() {
       {/* Header */}
       <div>
         <div className="flex items-center space-x-3 mb-2">
-          <Shield className="h-8 w-8 text-blue-600" />
+          <Flag className="h-8 w-8 text-amber-600" />
           <h1 className="text-3xl font-bold text-gray-900">
             🇩🇪 BSI CERT-Bund Advisories
           </h1>
