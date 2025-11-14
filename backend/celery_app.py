@@ -38,6 +38,11 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.fetch_cisa_kev",
         "schedule": crontab(minute=0, hour=9),  # Daily at 09:00 UTC
     },
+    # Refresh stats cache every 5 minutes
+    "refresh-stats-cache": {
+        "task": "tasks.refresh_stats_cache",
+        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+    },
     # LLM Processing Tasks - Only for NEW CVEs
     "process-new-cves": {
         "task": "backend.tasks.llm_tasks.process_new_cves",

@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models import Vulnerability
+from backend.services.stats_cache_service import refresh_stats_cache
 
 # Load environment variables
 load_dotenv()
@@ -190,6 +191,9 @@ class NVDCompleteService:
                     logger.info(
                         f"Processed {len(vulnerabilities)} CVEs (Total: {total_processed}/{total_results})"
                     )
+
+                    # Refresh stats cache after each batch
+                    refresh_stats_cache(db)
 
                     # Save checkpoint
                     if checkpoint_file:

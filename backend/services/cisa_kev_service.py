@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from backend.models import Vulnerability
 from backend.services.nvd_complete_service import NVDCompleteService
+from backend.services.stats_cache_service import refresh_stats_cache
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +153,10 @@ class CISAKEVService:
 
         # Final commit
         db.commit()
+
+        # Refresh stats cache after KEV updates
+        if updated_count > 0:
+            refresh_stats_cache(db)
 
         logger.info(
             f"CISA KEV update complete: {updated_count} updated, "
