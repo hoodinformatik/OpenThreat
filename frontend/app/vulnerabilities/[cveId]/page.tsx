@@ -29,15 +29,13 @@ import {
 import { VulnerabilityComments } from "@/components/VulnerabilityComments";
 import { BookmarkButton } from "@/components/BookmarkButton";
 
-// Server-side API URL (internal Docker network)
-const SERVER_API_URL = process.env.API_URL || 'http://backend:8001';
-// Client-side API URL (external)
-const CLIENT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+// API URL - use NEXT_PUBLIC_API_URL for both client and server in development
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 
 async function fetchVulnerability(cveId: string): Promise<VulnerabilityDetail> {
-  // Use internal Docker URL for server-side rendering
-  const res = await fetch(`${SERVER_API_URL}/api/v1/vulnerabilities/${cveId}`, {
+  const res = await fetch(`${API_URL}/api/v1/vulnerabilities/${cveId}`, {
     next: { revalidate: 3600 }, // Cache for 1 hour - CVE data rarely changes
+    cache: 'force-cache',
   });
 
   if (!res.ok) {
@@ -93,11 +91,6 @@ export default async function VulnerabilityDetailPage({
                   </Badge>
                   <Tooltip content={`${explainExploitation(vuln.exploited_in_the_wild).simple} - ${explainExploitation(vuln.exploited_in_the_wild).whatItMeans}`} />
                 </div>
-              )}
-              {vuln.sources?.includes("bsi_cert") && (
-                <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-                  🇩🇪 BSI CERT
-                </Badge>
               )}
             </div>
             <h2 className="text-xl text-gray-700">{vuln.title}</h2>
@@ -368,11 +361,6 @@ export default async function VulnerabilityDetailPage({
                       {ref.url}
                     </a>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {ref.source === "bsi_cert" && (
-                        <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
-                          🇩🇪 BSI CERT-Bund
-                        </Badge>
-                      )}
                       {ref.tags && ref.tags.length > 0 && ref.tags.map((tag) => (
                         <Badge key={tag} variant="outline" className="text-xs">
                           {tag}

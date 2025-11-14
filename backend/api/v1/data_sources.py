@@ -11,80 +11,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from backend.dependencies.auth import require_admin
 from backend.models import User, UserRole
 from backend.services.nvd_complete_service import get_nvd_service
-from backend.tasks.data_tasks import fetch_bsi_cert_task, fetch_cisa_kev_task
+from backend.tasks.data_tasks import fetch_cisa_kev_task
 
 router = APIRouter(prefix="/data-sources", tags=["Data Sources"])
 
 # Thread pool for long-running tasks
 executor = ThreadPoolExecutor(max_workers=2)
-
-
-@router.post("/bsi-cert/fetch", dependencies=[Depends(require_admin)])
-async def trigger_bsi_cert_fetch():
-    """
-    Manually trigger BSI CERT-Bund data fetch.
-
-    **Requires:** ADMIN role
-
-    This will:
-    1. Fetch latest security advisories from BSI CERT-Bund
-    2. Extract CVE references
-    3. Enrich existing CVEs with German descriptions
-
-    Returns task ID for tracking.
-    """
-    try:
-        task = fetch_bsi_cert_task.delay()
-        return {
-            "status": "queued",
-            "task_id": task.id,
-            "message": "BSI CERT-Bund fetch task started",
-            "source": "bsi_cert",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/bsi-cert/status")
-async def get_bsi_cert_status():
-    """
-    Get status of BSI CERT-Bund integration.
-
-    Returns information about the last fetch and enrichment.
-    """
-    from sqlalchemy import text
-
-    from backend.database import get_db
-    from backend.models import Vulnerability
-
-    db = next(get_db())
-    try:
-        # Count vulnerabilities with BSI source
-        bsi_count = (
-            db.query(Vulnerability)
-            .filter(text("sources::jsonb @> '[\"bsi_cert\"]'::jsonb"))
-            .count()
-        )
-
-        # Count vulnerabilities with BSI references
-        bsi_refs = (
-            db.query(Vulnerability)
-            .filter(Vulnerability.references.op("@>")('[{"source": "bsi_cert"}]'))
-            .count()
-        )
-
-        return {
-            "source": "bsi_cert",
-            "status": "active",
-            "vulnerabilities_with_bsi_source": bsi_count,
-            "vulnerabilities_with_bsi_references": bsi_refs,
-            "rss_feed": "https://wid.cert-bund.de/content/public/securityAdvisory/rss",
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
 
 
 @router.post("/nvd/fetch-all", dependencies=[Depends(require_admin)])
@@ -320,18 +252,6 @@ async def list_data_sources():
             "endpoints": {
                 "fetch": "/api/v1/data-sources/cisa-kev/fetch",
                 "status": "/api/v1/data-sources/cisa-kev/status",
-            },
-        },
-        {
-            "id": "bsi_cert",
-            "name": "BSI CERT-Bund",
-            "type": "enrichment",
-            "status": "active",
-            "update_frequency": "Daily at 08:00 UTC",
-            "description": "German security advisories and recommendations",
-            "endpoints": {
-                "fetch": "/api/v1/data-sources/bsi-cert/fetch",
-                "status": "/api/v1/data-sources/bsi-cert/status",
             },
         },
     ]

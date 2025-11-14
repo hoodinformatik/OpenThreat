@@ -29,7 +29,7 @@ export default function RootLayout({
             <footer className="border-t mt-12 py-6 text-center text-sm text-gray-600">
               <p>OpenThreat - Democratizing Threat Intelligence</p>
               <p className="mt-1">
-                Data sources: CISA KEV, NVD, BSI CERT-Bund
+                Data sources: CISA KEV, NVD
               </p>
               <p className="mt-2">
                 <a
