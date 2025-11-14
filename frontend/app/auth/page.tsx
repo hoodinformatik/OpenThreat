@@ -205,7 +205,7 @@ export default function WaitlistPage() {
                 <div className="ml-4">
                   <h3 className="font-semibold text-gray-900 dark:text-white">Centralized Intelligence</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    All major vulnerability sources in one place - CISA KEV, NVD, BSI-CERT, and more
+                    All major vulnerability sources in one place - CISA KEV, NVD, and more
                   </p>
                 </div>
               </div>
