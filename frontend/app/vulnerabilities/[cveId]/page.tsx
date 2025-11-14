@@ -29,11 +29,19 @@ import {
 import { VulnerabilityComments } from "@/components/VulnerabilityComments";
 import { BookmarkButton } from "@/components/BookmarkButton";
 
-// API URL - use NEXT_PUBLIC_API_URL for both client and server in development
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+// API URL - use internal Docker network URL for SSR, public URL for client
+const getApiUrl = () => {
+  // Server-side (SSR): use internal Docker network URL
+  if (typeof window === 'undefined') {
+    return process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+  }
+  // Client-side: use public URL
+  return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+};
 
 async function fetchVulnerability(cveId: string): Promise<VulnerabilityDetail> {
-  const res = await fetch(`${API_URL}/api/v1/vulnerabilities/${cveId}`, {
+  const apiUrl = getApiUrl();
+  const res = await fetch(`${apiUrl}/api/v1/vulnerabilities/${cveId}`, {
     next: { revalidate: 3600 }, // Cache for 1 hour - CVE data rarely changes
     cache: 'force-cache',
   });
