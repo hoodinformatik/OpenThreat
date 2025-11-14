@@ -50,7 +50,6 @@ class DataSourceEnum(str, Enum):
     CISA_KEV = "cisa_kev"
     NVD_CVE = "nvd_cve"
     EU_CVE_SEARCH = "eu_cve_search"
-    BSI_CERT = "bsi_cert"
     ALL = "all"
 
 
