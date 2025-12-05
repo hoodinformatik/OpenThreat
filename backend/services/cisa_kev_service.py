@@ -155,8 +155,8 @@ class CISAKEVService:
         db.commit()
 
         # Refresh stats cache after KEV updates
-        if updated_count > 0:
-            refresh_stats_cache(db)
+        # Always refresh to keep time-sensitive stats (like recent updates) accurate
+        refresh_stats_cache(db)
 
         logger.info(
             f"CISA KEV update complete: {updated_count} updated, "

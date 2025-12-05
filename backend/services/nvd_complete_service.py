@@ -226,6 +226,16 @@ class NVDCompleteService:
                 logger.error(f"Unexpected error: {e}")
                 raise
 
+        # Ensure stats are updated even if no new vulnerabilities were found
+        # This is critical for "last 7 days" stats to stay accurate as time passes
+        db = next(get_db())
+        try:
+            refresh_stats_cache(db)
+        except Exception as e:
+            logger.error(f"Failed to refresh stats cache: {e}")
+        finally:
+            db.close()
+
         return total_processed
 
     def _process_cve(self, db: Session, vuln_data: Dict[str, Any]) -> None:
