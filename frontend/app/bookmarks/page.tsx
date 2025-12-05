@@ -69,18 +69,18 @@ export default function BookmarksPage() {
   };
 
   const getSeverityColor = (severity: string | null) => {
-    if (!severity) return "bg-gray-100 text-gray-700";
+    if (!severity) return "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
     switch (severity.toUpperCase()) {
       case "CRITICAL":
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400";
       case "HIGH":
-        return "bg-orange-100 text-orange-700";
+        return "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400";
       case "MEDIUM":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400";
       case "LOW":
-        return "bg-blue-100 text-blue-700";
+        return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
     }
   };
 
@@ -88,11 +88,11 @@ export default function BookmarksPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
-          <Bookmark className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <Bookmark className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Sign in to view bookmarks
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             You need to be signed in to see your bookmarked CVEs.
           </p>
           <Link
@@ -113,18 +113,18 @@ export default function BookmarksPage() {
         <div className="mb-6">
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <Bookmark className="w-8 h-8 text-yellow-600" />
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                <Bookmark className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
                 My Bookmarks
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 {total > 0
                   ? `${total} bookmarked CVE${total === 1 ? "" : "s"}`
                   : "No bookmarks yet"}
@@ -139,12 +139,12 @@ export default function BookmarksPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : bookmarks.length === 0 ? (
-          <div className="bg-white rounded-lg shadow border border-gray-200 p-12 text-center">
-            <Bookmark className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <Bookmark className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No bookmarks yet
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               Start bookmarking CVEs to track them here
             </p>
             <Link
@@ -159,7 +159,7 @@ export default function BookmarksPage() {
             {bookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}
-                className="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -167,7 +167,7 @@ export default function BookmarksPage() {
                     <div className="flex items-center gap-3 mb-2">
                       <Link
                         href={`/vulnerabilities/${bookmark.cve_id}`}
-                        className="text-xl font-bold text-blue-600 hover:text-blue-700"
+                        className="text-xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                       >
                         {bookmark.cve_id}
                       </Link>
@@ -181,7 +181,7 @@ export default function BookmarksPage() {
                         </span>
                       )}
                       {bookmark.vulnerability?.is_exploited && (
-                        <span className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded">
+                        <span className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold rounded">
                           <AlertTriangle className="w-3 h-3" />
                           EXPLOITED
                         </span>
@@ -190,13 +190,13 @@ export default function BookmarksPage() {
 
                     {/* Description */}
                     {bookmark.vulnerability?.description && (
-                      <p className="text-gray-700 mb-3 line-clamp-2">
+                      <p className="text-gray-700 dark:text-gray-300 mb-3 line-clamp-2">
                         {bookmark.vulnerability.description}
                       </p>
                     )}
 
                     {/* Metadata */}
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                       {bookmark.vulnerability?.cvss_score && (
                         <div className="flex items-center gap-1">
                           <Shield className="w-4 h-4" />
@@ -213,8 +213,8 @@ export default function BookmarksPage() {
 
                     {/* Notes */}
                     {bookmark.notes && (
-                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                        <p className="text-sm text-gray-700">{bookmark.notes}</p>
+                      <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{bookmark.notes}</p>
                       </div>
                     )}
                   </div>
@@ -222,7 +222,7 @@ export default function BookmarksPage() {
                   {/* Actions */}
                   <button
                     onClick={() => removeBookmark(bookmark.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                     title="Remove bookmark"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -236,7 +236,7 @@ export default function BookmarksPage() {
         {/* Pagination */}
         {total > pageSize && (
           <div className="flex items-center justify-between mt-6 px-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Showing {(page - 1) * pageSize + 1} to{" "}
               {Math.min(page * pageSize, total)} of {total} bookmarks
             </p>
@@ -244,14 +244,14 @@ export default function BookmarksPage() {
               <button
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Previous
               </button>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= Math.ceil(total / pageSize)}
-                className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Next
               </button>

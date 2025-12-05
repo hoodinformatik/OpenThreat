@@ -187,8 +187,8 @@ export function DashboardContent() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Clock className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Loading...</p>
+          <Clock className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -198,31 +198,31 @@ export function DashboardContent() {
     <div className="space-y-8">
       {/* Hero Section */}
       <div className="text-center space-y-4 py-8">
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
           Latest Security Threats
         </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
           Stay informed about the latest vulnerabilities and security threats
         </p>
       </div>
 
       {/* Quick Stats Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center p-4 bg-white rounded-lg border">
-          <div className="text-2xl font-bold text-gray-900">{stats.total_vulnerabilities.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Total CVEs</div>
+        <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total_vulnerabilities.toLocaleString()}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Total CVEs</div>
         </div>
-        <div className="text-center p-4 bg-white rounded-lg border">
-          <div className="text-2xl font-bold text-red-600">{stats.exploited_vulnerabilities.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Exploited</div>
+        <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.exploited_vulnerabilities.toLocaleString()}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Exploited</div>
         </div>
-        <div className="text-center p-4 bg-white rounded-lg border">
-          <div className="text-2xl font-bold text-orange-600">{stats.critical_vulnerabilities.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Critical</div>
+        <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.critical_vulnerabilities.toLocaleString()}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Critical</div>
         </div>
-        <div className="text-center p-4 bg-white rounded-lg border">
-          <div className="text-2xl font-bold text-blue-600">{stats.recent_updates.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Last 7 Days</div>
+        <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.recent_updates.toLocaleString()}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Last 7 Days</div>
         </div>
       </div>
 
@@ -231,10 +231,10 @@ export function DashboardContent() {
         {/* Header - Mobile Optimized */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
               {viewMode === 'recent' ? 'Recent' : viewMode === 'hot' ? '🔥 Hot' : '🏆 Top'}
             </h2>
-            <Link href="/vulnerabilities" className="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap">
+            <Link href="/vulnerabilities" className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium whitespace-nowrap">
               View All →
             </Link>
           </div>
@@ -242,13 +242,13 @@ export function DashboardContent() {
           {/* View Mode Toggle + Filter - Mobile Optimized */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
             {/* View Mode Toggle - Compact */}
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
+            <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 flex-shrink-0">
               <button
                 onClick={() => setViewMode('recent')}
                 className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   viewMode === 'recent'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Recent
@@ -257,8 +257,8 @@ export function DashboardContent() {
                 onClick={() => setViewMode('hot')}
                 className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   viewMode === 'hot'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 🔥 Hot
@@ -267,8 +267,8 @@ export function DashboardContent() {
                 onClick={() => setViewMode('top')}
                 className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   viewMode === 'top'
-                    ? 'bg-white text-yellow-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-700 text-yellow-600 dark:text-yellow-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 🏆 Top
@@ -280,7 +280,7 @@ export function DashboardContent() {
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex-shrink-0 ${hasActiveFilters ? "border-blue-600 text-blue-600" : ""}`}
+              className={`flex-shrink-0 ${hasActiveFilters ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400" : ""}`}
             >
               <Filter className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Filter</span>
@@ -291,14 +291,14 @@ export function DashboardContent() {
 
         {/* Minimalist Filter Bar */}
         {showFilters && (
-          <Card className="p-4 bg-gray-50">
+          <Card className="p-4 bg-gray-50 dark:bg-gray-800">
             <div className="flex flex-wrap items-center gap-3">
               {/* Severity Filter */}
               <select
                 value={severity}
                 onChange={(e) => handleSeverityChange(e.target.value)}
                 disabled={isFiltering}
-                className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 <option value="">All Severities</option>
                 <option value="CRITICAL">Critical</option>
@@ -312,7 +312,7 @@ export function DashboardContent() {
                 value={exploited}
                 onChange={(e) => handleExploitedChange(e.target.value)}
                 disabled={isFiltering}
-                className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 <option value="">All CVEs</option>
                 <option value="true">Exploited Only</option>
@@ -326,7 +326,7 @@ export function DashboardContent() {
                   size="sm"
                   onClick={resetFilters}
                   disabled={isFiltering}
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Reset
@@ -334,7 +334,7 @@ export function DashboardContent() {
               )}
 
               {/* Results Count */}
-              <span className="text-sm text-gray-600 ml-auto">
+              <span className="text-sm text-gray-600 dark:text-gray-400 ml-auto">
                 {isFiltering ? "Loading..." : `${recentVulns.total} results`}
               </span>
             </div>
@@ -369,19 +369,19 @@ export function DashboardContent() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         {/* Article Title */}
-                        <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors mb-3">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-3">
                           {displayTitle}
                         </h3>
 
                     {/* Article Description */}
-                    <p className="text-gray-700 mb-4 line-clamp-3">
+                    <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
                       {displayDescription}
                     </p>
 
                     {/* Metadata Row */}
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                       {/* CVE ID */}
-                      <span className="font-mono font-semibold text-blue-600">
+                      <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
                         {vuln.cve_id}
                       </span>
 
@@ -394,7 +394,7 @@ export function DashboardContent() {
 
                       {/* Exploited Badge */}
                       {vuln.exploited_in_the_wild && (
-                        <Badge className="bg-red-100 text-red-800 border-red-300">
+                        <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-300 dark:border-red-700">
                           <AlertTriangle className="h-3 w-3 mr-1" />
                           Exploited
                         </Badge>
@@ -410,7 +410,7 @@ export function DashboardContent() {
 
                       {/* Date */}
                       {vuln.published_at && (
-                        <span className="flex items-center gap-1 ml-auto text-gray-500">
+                        <span className="flex items-center gap-1 ml-auto text-gray-500 dark:text-gray-500">
                           <Calendar className="h-3 w-3" />
                           {formatDate(vuln.published_at)}
                         </span>
@@ -418,7 +418,7 @@ export function DashboardContent() {
 
                       {/* Modified Date as fallback */}
                       {!vuln.published_at && vuln.modified_at && (
-                        <span className="flex items-center gap-1 ml-auto text-gray-500">
+                        <span className="flex items-center gap-1 ml-auto text-gray-500 dark:text-gray-500">
                           <Clock className="h-3 w-3" />
                           {formatDate(vuln.modified_at)}
                         </span>

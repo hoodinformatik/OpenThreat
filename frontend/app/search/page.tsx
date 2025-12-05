@@ -21,14 +21,14 @@ export default function SearchPage() {
   const [maxCvss, setMaxCvss] = useState("");
   const [publishedAfter, setPublishedAfter] = useState("");
   const [publishedBefore, setPublishedBefore] = useState("");
-  
+
   const [results, setResults] = useState<PaginatedResponse<Vulnerability> | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
+
     setLoading(true);
     setSearched(true);
 
@@ -88,8 +88,8 @@ export default function SearchPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Advanced Search</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Advanced Search</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
           Search vulnerabilities with multiple filters and criteria
         </p>
       </div>
@@ -108,7 +108,7 @@ export default function SearchPage() {
           <form onSubmit={handleSearch} className="space-y-6">
             {/* Text Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Search Query
               </label>
               <div className="relative">
@@ -118,7 +118,7 @@ export default function SearchPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="CVE ID, title, or description..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -127,13 +127,13 @@ export default function SearchPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Severity */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Severity
                 </label>
                 <select
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any</option>
                   <option value="CRITICAL">Critical</option>
@@ -145,13 +145,13 @@ export default function SearchPage() {
 
               {/* Exploited */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Exploitation Status
                 </label>
                 <select
                   value={exploited}
                   onChange={(e) => setExploited(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any</option>
                   <option value="true">Exploited in Wild</option>
@@ -161,7 +161,7 @@ export default function SearchPage() {
 
               {/* Vendor */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Vendor
                 </label>
                 <input
@@ -169,13 +169,13 @@ export default function SearchPage() {
                   value={vendor}
                   onChange={(e) => setVendor(e.target.value)}
                   placeholder="e.g., microsoft, apache"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Product */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Product
                 </label>
                 <input
@@ -183,13 +183,13 @@ export default function SearchPage() {
                   value={product}
                   onChange={(e) => setProduct(e.target.value)}
                   placeholder="e.g., windows, linux"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Min CVSS */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Min CVSS Score
                 </label>
                 <input
@@ -200,13 +200,13 @@ export default function SearchPage() {
                   min="0"
                   max="10"
                   step="0.1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Max CVSS */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Max CVSS Score
                 </label>
                 <input
@@ -217,33 +217,33 @@ export default function SearchPage() {
                   min="0"
                   max="10"
                   step="0.1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Published After */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Published After
                 </label>
                 <input
                   type="date"
                   value={publishedAfter}
                   onChange={(e) => setPublishedAfter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Published Before */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Published Before
                 </label>
                 <input
                   type="date"
                   value={publishedBefore}
                   onChange={(e) => setPublishedBefore(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -271,8 +271,8 @@ export default function SearchPage() {
       {/* Results */}
       {loading && (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Searching...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Searching...</p>
         </div>
       )}
 
@@ -280,7 +280,7 @@ export default function SearchPage() {
         <>
           {/* Results Header */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               {results.total === 0
                 ? "No results found"
                 : `Found ${results.total.toLocaleString()} result${results.total > 1 ? "s" : ""}`}
@@ -300,7 +300,7 @@ export default function SearchPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <span className="font-mono font-bold text-lg text-blue-600">
+                            <span className="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">
                               {vuln.cve_id}
                             </span>
                             {vuln.severity && (
@@ -309,28 +309,28 @@ export default function SearchPage() {
                               </Badge>
                             )}
                             {vuln.exploited_in_the_wild && (
-                              <Badge className="bg-red-100 text-red-800 border-red-300">
+                              <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-300 dark:border-red-700">
                                 <AlertTriangle className="h-3 w-3 mr-1" />
                                 Exploited
                               </Badge>
                             )}
                           </div>
 
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                             {vuln.title}
                           </h3>
 
                           {vuln.description && (
-                            <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">
                               {vuln.description}
                             </p>
                           )}
 
-                          <div className="flex items-center space-x-6 text-sm text-gray-500">
+                          <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                             {vuln.cvss_score && (
                               <div className="flex items-center space-x-1">
                                 <span className="font-medium">CVSS:</span>
-                                <span className="font-semibold text-gray-900">
+                                <span className="font-semibold text-gray-900 dark:text-white">
                                   {vuln.cvss_score}
                                 </span>
                               </div>
@@ -344,7 +344,7 @@ export default function SearchPage() {
                           </div>
                         </div>
 
-                        <Shield className="h-6 w-6 text-gray-400 ml-4" />
+                        <Shield className="h-6 w-6 text-gray-400 dark:text-gray-500 ml-4" />
                       </div>
                     </CardContent>
                   </Card>

@@ -79,7 +79,7 @@ export default async function VulnerabilityDetailPage({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-3xl font-bold font-mono text-gray-900">
+              <h1 className="text-3xl font-bold font-mono text-gray-900 dark:text-white">
                 {vuln.cve_id}
               </h1>
               <Tooltip content={explainCVE()} />
@@ -93,7 +93,7 @@ export default async function VulnerabilityDetailPage({
               )}
               {vuln.exploited_in_the_wild && (
                 <div className="inline-flex items-center space-x-1">
-                  <Badge className="bg-red-100 text-red-800 border-red-300">
+                  <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-300 dark:border-red-700">
                     <AlertTriangle className="h-4 w-4 mr-1" />
                     Exploited in Wild
                   </Badge>
@@ -101,7 +101,7 @@ export default async function VulnerabilityDetailPage({
                 </div>
               )}
             </div>
-            <h2 className="text-xl text-gray-700">{vuln.title}</h2>
+            <h2 className="text-xl text-gray-700 dark:text-gray-300">{vuln.title}</h2>
           </div>
         </div>
 
@@ -112,13 +112,13 @@ export default async function VulnerabilityDetailPage({
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="flex items-center justify-center space-x-2 mb-1">
-                    <p className="text-sm text-gray-600">CVSS Score</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">CVSS Score</p>
                     <Tooltip content={explainCVSS(vuln.cvss_score)} />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {vuln.cvss_score}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Base Score (0-10)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Base Score (0-10)</p>
                 </div>
               </CardContent>
             </Card>
@@ -129,13 +129,13 @@ export default async function VulnerabilityDetailPage({
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="flex items-center justify-center space-x-2 mb-1">
-                    <p className="text-sm text-gray-600">Priority Score</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Priority Score</p>
                     <Tooltip content={explainPriorityScore(vuln.priority_score)} />
                   </div>
-                  <p className="text-3xl font-bold text-blue-600">
+                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                     {vuln.priority_score.toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {(vuln.priority_score * 100).toFixed(0)}% priority
                   </p>
                 </div>
@@ -147,11 +147,11 @@ export default async function VulnerabilityDetailPage({
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Published</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Published</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {formatDate(vuln.published_at)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {new Date(vuln.published_at).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
@@ -166,11 +166,11 @@ export default async function VulnerabilityDetailPage({
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">CISA Due Date</p>
-                  <p className="text-lg font-semibold text-red-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">CISA Due Date</p>
+                  <p className="text-lg font-semibold text-red-600 dark:text-red-400">
                     {formatDate(vuln.cisa_due_date)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Action Required</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Action Required</p>
                 </div>
               </CardContent>
             </Card>
@@ -183,7 +183,7 @@ export default async function VulnerabilityDetailPage({
       {(() => {
         const actionPlan = generateActionPlan(vuln);
         return (
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
             <CardHeader>
               <CardTitle className="text-lg">
                 {actionPlan.priority} - Recommended Action Plan
@@ -193,7 +193,7 @@ export default async function VulnerabilityDetailPage({
             <CardContent>
               <ol className="space-y-2">
                 {actionPlan.steps.map((step, idx) => (
-                  <li key={idx} className="text-sm text-gray-700">
+                  <li key={idx} className="text-sm text-gray-700 dark:text-gray-300">
                     {step}
                   </li>
                 ))}
@@ -210,7 +210,7 @@ export default async function VulnerabilityDetailPage({
             <CardTitle>Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 leading-relaxed">{vuln.description}</p>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{vuln.description}</p>
           </CardContent>
         </Card>
       )}
@@ -223,7 +223,7 @@ export default async function VulnerabilityDetailPage({
             <CardDescription>Common Vulnerability Scoring System</CardDescription>
           </CardHeader>
           <CardContent>
-            <code className="block bg-gray-100 p-3 rounded text-sm font-mono">
+            <code className="block bg-gray-100 dark:bg-gray-700 p-3 rounded text-sm font-mono text-gray-900 dark:text-gray-100">
               {vuln.cvss_vector}
             </code>
           </CardContent>
@@ -249,7 +249,7 @@ export default async function VulnerabilityDetailPage({
                     <Badge variant="outline" className="mt-0.5">
                       {cwe}
                     </Badge>
-                    <p className="text-sm text-gray-700 flex-1">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 flex-1">
                       {explainCWE(cwe)}
                     </p>
                   </div>
@@ -335,7 +335,7 @@ export default async function VulnerabilityDetailPage({
               {vuln.affected_products.map((product, idx) => (
                 <code
                   key={idx}
-                  className="block bg-gray-50 p-2 rounded text-xs font-mono text-gray-700"
+                  className="block bg-gray-50 dark:bg-gray-700 p-2 rounded text-xs font-mono text-gray-700 dark:text-gray-300"
                 >
                   {product}
                 </code>
@@ -358,13 +358,13 @@ export default async function VulnerabilityDetailPage({
             <div className="space-y-3">
               {vuln.references.map((ref, idx) => (
                 <div key={idx} className="flex items-start space-x-3">
-                  <ExternalLink className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
+                  <ExternalLink className="h-4 w-4 text-gray-400 dark:text-gray-500 mt-1 flex-shrink-0" />
                   <div className="flex-1">
                     <a
                       href={ref.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 hover:underline break-all"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline break-all"
                     >
                       {ref.url}
                     </a>
@@ -391,25 +391,25 @@ export default async function VulnerabilityDetailPage({
         <CardContent>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <dt className="font-medium text-gray-600">CVE ID</dt>
-              <dd className="mt-1 font-mono">{vuln.cve_id}</dd>
+              <dt className="font-medium text-gray-600 dark:text-gray-400">CVE ID</dt>
+              <dd className="mt-1 font-mono text-gray-900 dark:text-white">{vuln.cve_id}</dd>
             </div>
             {vuln.published_at && (
               <div>
-                <dt className="font-medium text-gray-600">Published</dt>
-                <dd className="mt-1">{formatDate(vuln.published_at)}</dd>
+                <dt className="font-medium text-gray-600 dark:text-gray-400">Published</dt>
+                <dd className="mt-1 text-gray-900 dark:text-white">{formatDate(vuln.published_at)}</dd>
               </div>
             )}
             {vuln.modified_at && (
               <div>
-                <dt className="font-medium text-gray-600">Last Modified</dt>
-                <dd className="mt-1">{formatDate(vuln.modified_at)}</dd>
+                <dt className="font-medium text-gray-600 dark:text-gray-400">Last Modified</dt>
+                <dd className="mt-1 text-gray-900 dark:text-white">{formatDate(vuln.modified_at)}</dd>
               </div>
             )}
             {vuln.created_at && (
               <div>
-                <dt className="font-medium text-gray-600">Added to Database</dt>
-                <dd className="mt-1">{formatDate(vuln.created_at)}</dd>
+                <dt className="font-medium text-gray-600 dark:text-gray-400">Added to Database</dt>
+                <dd className="mt-1 text-gray-900 dark:text-white">{formatDate(vuln.created_at)}</dd>
               </div>
             )}
           </dl>

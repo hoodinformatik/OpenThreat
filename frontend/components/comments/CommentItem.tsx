@@ -149,17 +149,17 @@ export function CommentItem({
 
   if (comment.is_deleted) {
     return (
-      <div className={`${depth > 0 ? "ml-8 pl-4 border-l-2 border-gray-200" : ""}`}>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <p className="text-gray-500 italic">[Comment deleted]</p>
+      <div className={`${depth > 0 ? "ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700" : ""}`}>
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <p className="text-gray-500 dark:text-gray-400 italic">[Comment deleted]</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`${depth > 0 ? "ml-8 pl-4 border-l-2 border-gray-200" : ""}`}>
-      <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+    <div className={`${depth > 0 ? "ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700" : ""}`}>
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-sm transition-shadow">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -168,21 +168,21 @@ export function CommentItem({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {comment.user.username}
                 </span>
                 {comment.user.role === "admin" && (
-                  <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">
+                  <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs rounded-full">
                     Admin
                   </span>
                 )}
                 {comment.user.role === "analyst" && (
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                  <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded-full">
                     Analyst
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <span>
                   {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                 </span>
@@ -195,20 +195,20 @@ export function CommentItem({
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
               >
-                <MoreVertical className="w-4 h-4 text-gray-500" />
+                <MoreVertical className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               </button>
 
               {showMenu && (
-                <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <div className="absolute right-0 mt-1 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
                   {canEdit && !editing && (
                     <button
                       onClick={() => {
                         setEditing(true);
                         setShowMenu(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
                     >
                       <Edit2 className="w-3 h-3" />
                       Edit
@@ -220,7 +220,7 @@ export function CommentItem({
                         handleDelete();
                         setShowMenu(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2"
                     >
                       <Trash2 className="w-3 h-3" />
                       Delete
@@ -240,7 +240,7 @@ export function CommentItem({
               onChange={(e) => setEditContent(e.target.value)}
               rows={4}
               maxLength={5000}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
             <div className="flex gap-2">
               <button
@@ -254,7 +254,7 @@ export function CommentItem({
                   setEditing(false);
                   setEditContent(comment.content);
                 }}
-                className="px-3 py-1 border border-gray-300 text-sm rounded hover:bg-gray-50"
+                className="px-3 py-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
@@ -262,7 +262,7 @@ export function CommentItem({
           </div>
         ) : (
           <div className="mb-3">
-            <p className="text-gray-800 whitespace-pre-wrap break-words">
+            <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
               {comment.content}
             </p>
           </div>
@@ -275,8 +275,8 @@ export function CommentItem({
             <button
               onClick={() => onVote(comment.id, 1)}
               disabled={!isAuthenticated}
-              className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-                comment.user_vote === 1 ? "text-blue-600" : "text-gray-500"
+              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                comment.user_vote === 1 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
               } ${!isAuthenticated ? "cursor-not-allowed opacity-50" : ""}`}
               title={isAuthenticated ? "Upvote" : "Sign in to vote"}
             >
@@ -284,7 +284,7 @@ export function CommentItem({
             </button>
             <span
               className={`font-semibold min-w-[2rem] text-center ${
-                score > 0 ? "text-blue-600" : score < 0 ? "text-red-600" : "text-gray-600"
+                score > 0 ? "text-blue-600 dark:text-blue-400" : score < 0 ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"
               }`}
             >
               {score}
@@ -292,8 +292,8 @@ export function CommentItem({
             <button
               onClick={() => onVote(comment.id, -1)}
               disabled={!isAuthenticated}
-              className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-                comment.user_vote === -1 ? "text-red-600" : "text-gray-500"
+              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                comment.user_vote === -1 ? "text-red-600 dark:text-red-400" : "text-gray-500 dark:text-gray-400"
               } ${!isAuthenticated ? "cursor-not-allowed opacity-50" : ""}`}
               title={isAuthenticated ? "Downvote" : "Sign in to vote"}
             >
@@ -305,7 +305,7 @@ export function CommentItem({
           {isAuthenticated && depth < 3 && (
             <button
               onClick={() => setShowReplyForm(!showReplyForm)}
-              className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               <MessageSquare className="w-4 h-4" />
               Reply
@@ -317,7 +317,7 @@ export function CommentItem({
             <button
               onClick={loadReplies}
               disabled={loadingReplies}
-              className="flex items-center gap-1 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               <MessageSquare className="w-4 h-4" />
               {loadingReplies ? "Loading..." : `${comment.reply_count} ${comment.reply_count === 1 ? "reply" : "replies"}`}
@@ -327,7 +327,7 @@ export function CommentItem({
 
         {/* Reply form */}
         {showReplyForm && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <CommentForm
               cveId={cveId}
               parentId={comment.id}
