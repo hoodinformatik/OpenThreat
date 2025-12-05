@@ -103,11 +103,11 @@ export function CommentSection({ cveId }: CommentSectionProps) {
         <h2 className="text-2xl font-bold">
           Comments ({total})
         </h2>
-        
+
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "created_at" | "upvotes")}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="created_at">Newest First</option>
           <option value="upvotes">Most Upvoted</option>
@@ -120,10 +120,10 @@ export function CommentSection({ cveId }: CommentSectionProps) {
           onCommentAdded={handleCommentAdded}
         />
       ) : (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-          <p className="text-gray-600">
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
+          <p className="text-gray-600 dark:text-gray-400">
             Please{" "}
-            <a href="/auth" className="text-blue-600 hover:underline">
+            <a href="/auth" className="text-blue-600 dark:text-blue-400 hover:underline">
               sign in
             </a>{" "}
             to comment
@@ -133,21 +133,21 @@ export function CommentSection({ cveId }: CommentSectionProps) {
 
       {loading && page === 1 ? (
         <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading comments...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading comments...</p>
         </div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">{error}</p>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-600 dark:text-red-400">{error}</p>
           <button
             onClick={fetchComments}
-            className="mt-2 text-sm text-red-600 hover:underline"
+            className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
           >
             Try again
           </button>
         </div>
       ) : comments.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           No comments yet. Be the first to comment!
         </div>
       ) : (
@@ -165,17 +165,17 @@ export function CommentSection({ cveId }: CommentSectionProps) {
               <button
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Previous
               </button>
-              <span className="px-4 py-2">
+              <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
                 Page {page} of {Math.ceil(total / pageSize)}
               </span>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= Math.ceil(total / pageSize)}
-                className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Next
               </button>

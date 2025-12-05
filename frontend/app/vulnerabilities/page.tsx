@@ -58,7 +58,7 @@ export default function VulnerabilitiesPage() {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Vulnerabilities</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Vulnerabilities</h1>
           <Link href="/search" className="hidden md:block">
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
@@ -66,7 +66,7 @@ export default function VulnerabilitiesPage() {
             </Button>
           </Link>
         </div>
-        <p className="text-gray-600 text-sm md:text-base">
+        <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">
           Browse all tracked CVEs from multiple sources
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function VulnerabilitiesPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Severity Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Severity
               </label>
               <select
@@ -89,7 +89,7 @@ export default function VulnerabilitiesPage() {
                   setSeverity(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Severities</option>
                 <option value="CRITICAL">Critical</option>
@@ -101,7 +101,7 @@ export default function VulnerabilitiesPage() {
 
             {/* Exploited Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Exploitation Status
               </label>
               <select
@@ -110,7 +110,7 @@ export default function VulnerabilitiesPage() {
                   setExploited(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All</option>
                 <option value="true">Exploited in Wild</option>
@@ -120,13 +120,13 @@ export default function VulnerabilitiesPage() {
 
             {/* Sort By */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Sort By
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="priority_score">Priority Score</option>
                 <option value="cvss_score">CVSS Score</option>
@@ -152,13 +152,13 @@ export default function VulnerabilitiesPage() {
       {/* Results */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading vulnerabilities...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading vulnerabilities...</p>
         </div>
       ) : data ? (
         <>
           {/* Stats */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 text-xs md:text-sm text-gray-600">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">
             <p>
               Showing {((page - 1) * 20) + 1} - {Math.min(page * 20, data.total)} of{" "}
               <span className="font-semibold">{data.total.toLocaleString()}</span> vulnerabilities
@@ -180,7 +180,7 @@ export default function VulnerabilitiesPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center flex-wrap gap-2 mb-2">
-                          <span className="font-mono font-bold text-base md:text-lg text-blue-600 break-all">
+                          <span className="font-mono font-bold text-base md:text-lg text-blue-600 dark:text-blue-400 break-all">
                             {vuln.cve_id}
                           </span>
                           {vuln.severity && (
@@ -189,34 +189,34 @@ export default function VulnerabilitiesPage() {
                             </Badge>
                           )}
                           {vuln.exploited_in_the_wild && (
-                            <Badge className="bg-red-100 text-red-800 border-red-300">
+                            <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-300 dark:border-red-700">
                               <AlertTriangle className="h-3 w-3 mr-1" />
                               Exploited
                             </Badge>
                           )}
                         </div>
 
-                        <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2 break-words">
+                        <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-2 break-words">
                           {vuln.simple_title || vuln.title}
                         </h3>
 
                         {(vuln.simple_description || vuln.description) && (
-                          <p className="text-gray-600 text-sm line-clamp-2 mb-3 break-words">
+                          <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3 break-words">
                             {vuln.simple_description || vuln.description}
                           </p>
                         )}
 
                         {!vuln.description && !vuln.simple_description && (
-                          <p className="text-gray-500 text-sm italic mb-3">
+                          <p className="text-gray-500 dark:text-gray-500 text-sm italic mb-3">
                             No description available. Processing in background...
                           </p>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm text-gray-500">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                           {vuln.cvss_score && (
                             <div className="flex items-center space-x-1 whitespace-nowrap">
                               <span className="font-medium">CVSS:</span>
-                              <span className="font-semibold text-gray-900">
+                              <span className="font-semibold text-gray-900 dark:text-white">
                                 {vuln.cvss_score}
                               </span>
                             </div>
@@ -224,7 +224,7 @@ export default function VulnerabilitiesPage() {
                           {vuln.priority_score && (
                             <div className="flex items-center space-x-1 whitespace-nowrap">
                               <span className="font-medium">Priority:</span>
-                              <span className="font-semibold text-gray-900">
+                              <span className="font-semibold text-gray-900 dark:text-white">
                                 {vuln.priority_score.toFixed(2)}
                               </span>
                             </div>
@@ -244,7 +244,7 @@ export default function VulnerabilitiesPage() {
                         </div>
                       </div>
 
-                      <Shield className="h-5 w-5 md:h-6 md:w-6 text-gray-400 flex-shrink-0" />
+                      <Shield className="h-5 w-5 md:h-6 md:w-6 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                     </div>
                   </CardContent>
                 </Card>
@@ -273,7 +273,7 @@ export default function VulnerabilitiesPage() {
                   >
                     1
                   </Button>
-                  {page > 3 && <span className="text-gray-500">...</span>}
+                  {page > 3 && <span className="text-gray-500 dark:text-gray-400">...</span>}
                 </>
               )}
 
@@ -304,7 +304,7 @@ export default function VulnerabilitiesPage() {
               {page < data.total_pages - 1 && (
                 <>
                   {page < data.total_pages - 2 && (
-                    <span className="text-gray-500">...</span>
+                    <span className="text-gray-500 dark:text-gray-400">...</span>
                   )}
                   <Button
                     variant="outline"
@@ -329,7 +329,7 @@ export default function VulnerabilitiesPage() {
         </>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-600">No vulnerabilities found.</p>
+          <p className="text-gray-600 dark:text-gray-400">No vulnerabilities found.</p>
         </div>
       )}
     </div>

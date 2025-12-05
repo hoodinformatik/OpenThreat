@@ -66,7 +66,7 @@ export function CommentForm({
       const newComment = await response.json();
       onCommentAdded(newComment);
       setContent("");
-      
+
       if (onCancel) {
         onCancel();
       }
@@ -87,14 +87,14 @@ export function CommentForm({
           rows={4}
           maxLength={5000}
           disabled={submitting}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
+          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed resize-none"
         />
         <div className="flex justify-between items-center mt-1">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {content.length} / 5000 characters
           </span>
           {content.length > 4500 && (
-            <span className="text-sm text-orange-600">
+            <span className="text-sm text-orange-600 dark:text-orange-400">
               {5000 - content.length} characters remaining
             </span>
           )}
@@ -102,8 +102,8 @@ export function CommentForm({
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -111,7 +111,7 @@ export function CommentForm({
         <button
           type="submit"
           disabled={submitting || !content.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
         >
           {submitting ? "Posting..." : parentId ? "Reply" : "Post Comment"}
         </button>
@@ -121,14 +121,14 @@ export function CommentForm({
             type="button"
             onClick={onCancel}
             disabled={submitting}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Cancel
           </button>
         )}
       </div>
 
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-gray-500 dark:text-gray-400">
         <p>💡 Tips:</p>
         <ul className="list-disc list-inside mt-1 space-y-1">
           <li>Only plain text is allowed (no HTML or scripts)</li>

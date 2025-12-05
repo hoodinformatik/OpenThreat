@@ -112,8 +112,8 @@ export function BookmarkButton({ cveId, size = "md" }: BookmarkButtonProps) {
       disabled={loading}
       className={`${buttonSizeClasses[size]} flex items-center gap-2 rounded-lg border transition-colors ${
         isBookmarked
-          ? "bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
-          : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
+          ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+          : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
       } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
       title={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
     >

@@ -116,11 +116,11 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "reply":
-        return <MessageSquare className="w-5 h-5 text-green-600" />;
+        return <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-400" />;
       case "vote_milestone":
-        return <ThumbsUp className="w-5 h-5 text-purple-600" />;
+        return <ThumbsUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
       default:
-        return <Bell className="w-5 h-5 text-gray-600" />;
+        return <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
     }
   };
 
@@ -144,11 +144,11 @@ export default function NotificationsPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
-          <Bell className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <Bell className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Sign in to view notifications
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             You need to be signed in to see your notifications.
           </p>
           <Link
@@ -169,15 +169,15 @@ export default function NotificationsPage() {
         <div className="mb-6">
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Notifications</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 {unreadCount > 0
                   ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
                   : "All caught up!"}
@@ -186,7 +186,7 @@ export default function NotificationsPage() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
               >
                 <CheckCheck className="w-4 h-4" />
                 Mark all as read
@@ -196,24 +196,24 @@ export default function NotificationsPage() {
         </div>
 
         {/* Notifications List */}
-        <div className="bg-white rounded-lg shadow border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
               <Bell className="w-16 h-16 mb-4 opacity-50" />
               <p className="text-lg font-medium">No notifications yet</p>
               <p className="text-sm">We'll notify you when something happens</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-6 hover:bg-gray-50 transition-colors ${
-                    !notification.is_read ? "bg-blue-50" : ""
+                  className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                    !notification.is_read ? "bg-blue-50 dark:bg-blue-900/20" : ""
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -233,13 +233,13 @@ export default function NotificationsPage() {
                         }}
                         className="block"
                       >
-                        <p className="text-base font-medium text-gray-900">
+                        <p className="text-base font-medium text-gray-900 dark:text-white">
                           {notification.title}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                           {formatDistanceToNow(new Date(notification.created_at), {
                             addSuffix: true,
                           })}
@@ -252,7 +252,7 @@ export default function NotificationsPage() {
                       {!notification.is_read && (
                         <button
                           onClick={() => markAsRead([notification.id])}
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Mark as read"
                         >
                           <Check className="w-4 h-4" />
@@ -260,7 +260,7 @@ export default function NotificationsPage() {
                       )}
                       <button
                         onClick={() => deleteNotification(notification.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                         title="Delete"
                       >
                         <X className="w-4 h-4" />
@@ -274,8 +274,8 @@ export default function NotificationsPage() {
 
           {/* Pagination */}
           {total > pageSize && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {(page - 1) * pageSize + 1} to{" "}
                 {Math.min(page * pageSize, total)} of {total} notifications
               </p>
@@ -283,14 +283,14 @@ export default function NotificationsPage() {
                 <button
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setPage(page + 1)}
                   disabled={page >= Math.ceil(total / pageSize)}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Next
                 </button>
