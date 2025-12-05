@@ -12,6 +12,7 @@ from datetime import datetime
 from backend.celery_app import celery_app as celery
 from backend.database import get_db
 from backend.services.cisa_kev_service import get_cisa_kev_service
+from backend.services.stats_cache_service import refresh_stats_cache
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,50 @@ def fetch_cisa_kev_task(self) -> dict:
 
         # Retry with exponential backoff
         raise self.retry(exc=e, countdown=60 * (2**self.request.retries))
+
+    finally:
+        db.close()
+
+
+@celery.task(name="tasks.refresh_stats_cache")
+def refresh_stats_cache_task() -> dict:
+    """
+    Refresh vulnerability statistics cache.
+
+    This task should run periodically (e.g., every 5 minutes) to ensure
+    stats are always up-to-date, even if the automatic refresh after
+    data ingestion fails.
+
+    Returns:
+        Dict with status
+    """
+    db = next(get_db())
+    try:
+        logger.info("Starting stats cache refresh task")
+
+        success = refresh_stats_cache(db)
+
+        if success:
+            logger.info("Stats cache refresh task complete")
+            return {
+                "status": "success",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        else:
+            logger.warning("Stats cache refresh task completed with errors")
+            return {
+                "status": "error",
+                "message": "Failed to refresh stats cache",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+    except Exception as e:
+        logger.error(f"Stats cache refresh task failed: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
 
     finally:
         db.close()
