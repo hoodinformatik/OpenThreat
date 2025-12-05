@@ -14,7 +14,12 @@ celery_app = Celery(
     "openthreat",
     broker=REDIS_URL,
     backend=REDIS_URL,
-    include=["backend.tasks", "backend.tasks.llm_tasks", "backend.tasks.data_tasks"],
+    include=[
+        "backend.tasks",
+        "backend.tasks.llm_tasks",
+        "backend.tasks.data_tasks",
+        "backend.tasks.news_tasks",
+    ],
 )
 
 # Celery configuration
@@ -48,10 +53,20 @@ celery_app.conf.beat_schedule = {
         "task": "backend.tasks.llm_tasks.process_new_cves",
         "schedule": crontab(minute="*/10"),  # Every 10 minutes
     },
+    # News fetching - Every 30 minutes
+    "fetch-news-articles": {
+        "task": "tasks.fetch_news_articles",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes
+    },
+    # News LLM processing - Every 15 minutes
+    "process-news-with-llm": {
+        "task": "tasks.process_news_with_llm",
+        "schedule": crontab(minute="*/15"),  # Every 15 minutes
+    },
 }
 
 # Import task modules
-from backend.tasks import data_tasks, llm_tasks  # noqa: E402, F401
+from backend.tasks import data_tasks, llm_tasks, news_tasks  # noqa: E402, F401
 
 if __name__ == "__main__":
     celery_app.start()

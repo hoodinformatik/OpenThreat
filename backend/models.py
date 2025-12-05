@@ -657,6 +657,130 @@ class Notification(Base):
         return f"<Notification(id={self.id}, user_id={self.user_id}, type={self.type}, is_read={self.is_read})>"
 
 
+class NewsSource(Base):
+    """
+    RSS/Atom feed sources for security news.
+    """
+
+    __tablename__ = "news_sources"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Source details
+    name = Column(String(200), nullable=False)
+    url = Column(String(500), unique=True, nullable=False)  # RSS feed URL
+    description = Column(Text, nullable=True)
+    icon_url = Column(String(500), nullable=True)  # Favicon or logo
+
+    # Source type
+    source_type = Column(String(50), default="rss", nullable=False)  # rss, atom, api
+
+    # Status
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    is_default = Column(
+        Boolean, default=False, nullable=False
+    )  # Pre-configured sources
+
+    # Fetch settings
+    fetch_interval_minutes = Column(Integer, default=30, nullable=False)
+    last_fetched_at = Column(DateTime(timezone=True), nullable=True)
+    last_fetch_status = Column(String(50), nullable=True)  # success, error
+    last_fetch_error = Column(Text, nullable=True)
+
+    # Statistics
+    total_articles = Column(Integer, default=0, nullable=False)
+
+    # Timestamps
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationships
+    articles = relationship(
+        "NewsArticle", back_populates="source", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self):
+        return f"<NewsSource(name={self.name}, url={self.url})>"
+
+
+class NewsArticle(Base):
+    """
+    Security news articles fetched from RSS feeds.
+    """
+
+    __tablename__ = "news_articles"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Source relationship
+    source_id = Column(
+        Integer, ForeignKey("news_sources.id"), nullable=False, index=True
+    )
+
+    # Article details
+    title = Column(String(500), nullable=False)
+    url = Column(String(1000), unique=True, nullable=False)  # Original article URL
+    author = Column(String(200), nullable=True)
+
+    # Content
+    original_summary = Column(Text, nullable=True)  # Original RSS description
+    content = Column(Text, nullable=True)  # Full content if available
+
+    # LLM-processed fields
+    llm_summary = Column(Text, nullable=True)  # LLM-generated summary
+    llm_key_points = Column(JSON, nullable=True)  # Key takeaways as list
+    llm_relevance_score = Column(Float, nullable=True)  # 0-1 relevance to security
+    llm_processed = Column(Boolean, default=False, nullable=False)
+    llm_processed_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Categorization
+    categories = Column(JSON, nullable=True)  # ["vulnerability", "malware", "breach"]
+    tags = Column(JSON, nullable=True)  # Extracted tags
+
+    # Related CVEs (if mentioned in article)
+    related_cves = Column(JSON, nullable=True)  # ["CVE-2024-1234", ...]
+
+    # Timestamps
+    published_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    fetched_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationships
+    source = relationship("NewsSource", back_populates="articles")
+
+    # Indexes
+    __table_args__ = (
+        Index("idx_news_articles_source_published", "source_id", "published_at"),
+        Index("idx_news_articles_published", "published_at"),
+        Index(
+            "ix_news_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
+    )
+
+    def __repr__(self):
+        return f"<NewsArticle(title={self.title[:50]}...)>"
+
+
 class WaitlistEntry(Base):
     """
     Waitlist entries for beta launch signups.

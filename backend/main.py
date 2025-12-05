@@ -96,6 +96,7 @@ from .api import (
     cve_votes,
     feeds,
     health,
+    news,
     notifications,
     search,
     stats,
@@ -123,6 +124,7 @@ app.include_router(llm.router, prefix="/api/v1", tags=["LLM Processing"])
 app.include_router(data_sources.router, prefix="/api/v1", tags=["Data Sources"])
 app.include_router(cve_votes.router, prefix="/api/v1", tags=["CVE Voting"])
 app.include_router(trending.router, prefix="/api/v1", tags=["Trending"])
+app.include_router(news.router, prefix="/api/v1", tags=["News"])
 
 
 @app.get("/")
