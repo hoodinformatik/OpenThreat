@@ -84,8 +84,6 @@ def upgrade() -> None:
         VALUES
             ('Heise Security', 'https://www.heise.de/security/feed.xml',
              'German IT security news from Heise', 'https://www.heise.de/favicon.ico', true, true),
-            ('Hacker News', 'https://hnrss.org/newest',
-             'Tech and security news from Y Combinator''s Hacker News', 'https://news.ycombinator.com/favicon.ico', true, true),
             ('NCSC UK', 'https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml',
              'UK National Cyber Security Centre advisories', 'https://www.ncsc.gov.uk/favicon.ico', true, true),
             ('The Hacker News', 'https://feeds.feedburner.com/TheHackersNews',

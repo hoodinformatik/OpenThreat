@@ -235,11 +235,41 @@ export default function NewsPage() {
               News Sources
             </CardTitle>
             <CardDescription>
-              Configure which RSS feeds to aggregate
+              Filter by source or view all feeds combined
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* All Sources Option */}
+              <div
+                className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                  selectedSource === null
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                }`}
+                onClick={() => setSelectedSource(null)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                      <Newspaper className="h-3 w-3 text-white" />
+                    </div>
+                    <span className="font-medium">All Sources</span>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">
+                    Combined
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  View all news from every source, sorted by time
+                </p>
+                <div className="flex items-center justify-between mt-3 text-xs text-gray-400">
+                  <span>{stats?.total_articles || 0} total articles</span>
+                  <span>{sources.length} sources</span>
+                </div>
+              </div>
+
+              {/* Individual Sources */}
               {sources.map((source) => (
                 <div
                   key={source.id}
@@ -248,7 +278,7 @@ export default function NewsPage() {
                       ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                       : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
                   }`}
-                  onClick={() => setSelectedSource(selectedSource === source.id ? null : source.id)}
+                  onClick={() => setSelectedSource(source.id)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
@@ -288,17 +318,6 @@ export default function NewsPage() {
                 </div>
               ))}
             </div>
-            {selectedSource && (
-              <div className="mt-4 flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedSource(null)}
-                >
-                  Clear Filter
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}

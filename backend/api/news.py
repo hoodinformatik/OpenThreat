@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, HttpUrl
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -297,10 +297,13 @@ async def list_news_articles(
     # Get total count
     total = query.count()
 
-    # Apply pagination
+    # Apply pagination with proper sorting
+    # Use COALESCE to fall back to fetched_at if published_at is NULL
     offset = (page - 1) * page_size
     articles = (
-        query.order_by(desc(NewsArticle.published_at))
+        query.order_by(
+            desc(func.coalesce(NewsArticle.published_at, NewsArticle.fetched_at))
+        )
         .offset(offset)
         .limit(page_size)
         .all()

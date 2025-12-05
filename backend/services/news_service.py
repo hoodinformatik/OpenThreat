@@ -31,12 +31,6 @@ DEFAULT_NEWS_SOURCES = [
         "icon_url": "https://www.heise.de/favicon.ico",
     },
     {
-        "name": "Hacker News",
-        "url": "https://hnrss.org/newest",
-        "description": "Tech and security news from Y Combinator's Hacker News",
-        "icon_url": "https://news.ycombinator.com/favicon.ico",
-    },
-    {
         "name": "NCSC UK",
         "url": "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml",
         "description": "UK National Cyber Security Centre advisories",
@@ -151,17 +145,26 @@ class NewsService:
 
             # Handle Atom
             else:
-                # Check for Atom namespace
-                ns = {"atom": "http://www.w3.org/2005/Atom"}
-                for entry in root.findall("atom:entry", ns):
-                    article = self._parse_atom_entry(entry, ns)
+                # Check for Atom namespace (with prefix)
+                ns_prefixed = {"atom": "http://www.w3.org/2005/Atom"}
+                for entry in root.findall("atom:entry", ns_prefixed):
+                    article = self._parse_atom_entry(entry, ns_prefixed, "atom:")
                     if article:
                         articles.append(article)
 
-                # Try without namespace
+                # Try with default namespace (xmlns without prefix - like Heise)
+                if not articles:
+                    # ElementTree requires {namespace}tag format for default namespace
+                    atom_ns = "{http://www.w3.org/2005/Atom}"
+                    for entry in root.findall(f"{atom_ns}entry"):
+                        article = self._parse_atom_entry_with_ns(entry, atom_ns)
+                        if article:
+                            articles.append(article)
+
+                # Try without any namespace
                 if not articles:
                     for entry in root.findall("entry"):
-                        article = self._parse_atom_entry(entry, {})
+                        article = self._parse_atom_entry(entry, {}, "")
                         if article:
                             articles.append(article)
 
@@ -205,11 +208,9 @@ class NewsService:
         }
 
     def _parse_atom_entry(
-        self, entry: ElementTree.Element, ns: Dict[str, str]
+        self, entry: ElementTree.Element, ns: Dict[str, str], prefix: str = ""
     ) -> Optional[Dict[str, Any]]:
-        """Parse a single Atom entry."""
-        prefix = "atom:" if ns else ""
-
+        """Parse a single Atom entry with namespace prefix."""
         title_elem = entry.find(f"{prefix}title", ns) if ns else entry.find("title")
         title = title_elem.text if title_elem is not None else None
 
@@ -273,11 +274,68 @@ class NewsService:
             "categories": None,
         }
 
+    def _parse_atom_entry_with_ns(
+        self, entry: ElementTree.Element, ns: str
+    ) -> Optional[Dict[str, Any]]:
+        """Parse Atom entry with default namespace (like Heise feeds)."""
+        title_elem = entry.find(f"{ns}title")
+        title = title_elem.text if title_elem is not None else None
+
+        # Get link (prefer alternate)
+        link = None
+        for link_elem in entry.findall(f"{ns}link"):
+            rel = link_elem.get("rel", "alternate")
+            if rel == "alternate":
+                link = link_elem.get("href")
+                break
+            elif not link:
+                link = link_elem.get("href")
+
+        if not title or not link:
+            return None
+
+        # Parse publication date - prefer published over updated
+        pub_date = None
+        published = entry.find(f"{ns}published")
+        updated = entry.find(f"{ns}updated")
+        pub_date_str = (
+            published.text
+            if published is not None
+            else updated.text if updated is not None else None
+        )
+        if pub_date_str:
+            pub_date = self._parse_date(pub_date_str)
+
+        # Get summary/content
+        summary_elem = entry.find(f"{ns}summary")
+        content_elem = entry.find(f"{ns}content")
+        summary = (
+            summary_elem.text
+            if summary_elem is not None
+            else content_elem.text if content_elem is not None else ""
+        )
+        summary = self._clean_html(summary or "")
+
+        # Get author
+        author_elem = entry.find(f"{ns}author/{ns}name")
+        author = author_elem.text if author_elem is not None else None
+
+        return {
+            "title": self._clean_html(title),
+            "url": link.strip(),
+            "summary": summary[:2000],
+            "author": author,
+            "published_at": pub_date,
+            "categories": None,
+        }
+
     def _parse_date(self, date_str: str) -> Optional[datetime]:
         """Parse various date formats."""
         formats = [
             "%a, %d %b %Y %H:%M:%S %z",  # RFC 822
             "%a, %d %b %Y %H:%M:%S %Z",  # RFC 822 with timezone name
+            "%Y-%m-%dT%H:%M:%S.%fZ",  # ISO 8601 with milliseconds UTC (Heise)
+            "%Y-%m-%dT%H:%M:%S.%f%z",  # ISO 8601 with milliseconds and timezone
             "%Y-%m-%dT%H:%M:%S%z",  # ISO 8601
             "%Y-%m-%dT%H:%M:%SZ",  # ISO 8601 UTC
             "%Y-%m-%d %H:%M:%S",  # Simple datetime
