@@ -6,6 +6,7 @@ Supports nested comments and voting with strict XSS protection.
 import html
 import logging
 import re
+import bleach
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -48,14 +49,9 @@ class CommentCreate(BaseModel):
         if not v or not v.strip():
             raise ValueError("Content cannot be empty")
 
-        # Remove any HTML tags
-        v = re.sub(r"<[^>]+>", "", v)
+        # Remove HTML tags and script/style safely and robustly using bleach
+        v = bleach.clean(v, tags=[], strip=True)
 
-        # Remove script tags and their content
-        v = re.sub(r"<script[^>]*>.*?</script>", "", v, flags=re.IGNORECASE | re.DOTALL)
-
-        # Remove style tags and their content
-        v = re.sub(r"<style[^>]*>.*?</style>", "", v, flags=re.IGNORECASE | re.DOTALL)
 
         # Escape HTML entities
         v = html.escape(v)
