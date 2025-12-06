@@ -116,6 +116,8 @@ jobs:
 
   build:
     name: Build Docker Images
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     if: always()
     needs: [test, security]
