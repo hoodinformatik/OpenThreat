@@ -43,28 +43,34 @@ git pull origin main
 # Build images
 echo ""
 echo "🔨 Building Docker images..."
-docker-compose -f docker-compose.prod.yml build --no-cache
+docker compose build --no-cache backend frontend celery-worker celery-beat
 
 # Stop old containers
 echo ""
 echo "🛑 Stopping old containers..."
-docker-compose -f docker-compose.prod.yml down
+docker compose down
 
 # Start database and wait
 echo ""
 echo "🗄️  Starting database..."
-docker-compose -f docker-compose.prod.yml up -d postgres redis
+docker compose up -d postgres redis
 sleep 10
 
 # Run migrations
 echo ""
 echo "📊 Running database migrations..."
-docker-compose -f docker-compose.prod.yml run --rm backend alembic upgrade head
+docker compose run --rm backend alembic upgrade head
 
 # Start all services
 echo ""
 echo "🚀 Starting all services..."
-docker-compose -f docker-compose.prod.yml up -d
+docker compose up -d
+
+# Wait for Celery to be ready and trigger initial news fetch
+echo ""
+echo "📰 Triggering initial news fetch..."
+sleep 5
+docker compose exec -T celery-worker python -c "from backend.tasks.news_tasks import fetch_news_articles_task; fetch_news_articles_task.delay()" || echo -e "${YELLOW}⚠️ News fetch trigger failed - will run on schedule${NC}"
 
 # Wait for services to be healthy
 echo ""
@@ -78,7 +84,7 @@ if curl -f http://localhost/health > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} Backend is healthy"
 else
     echo -e "${RED}❌ Backend health check failed${NC}"
-    docker-compose -f docker-compose.prod.yml logs backend
+    docker compose logs backend
     exit 1
 fi
 
@@ -86,19 +92,32 @@ if curl -f http://localhost > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} Frontend is healthy"
 else
     echo -e "${RED}❌ Frontend health check failed${NC}"
-    docker-compose -f docker-compose.prod.yml logs frontend
+    docker compose logs frontend
     exit 1
+fi
+
+# Check Celery services
+if docker compose ps celery-worker | grep -q "Up"; then
+    echo -e "${GREEN}✓${NC} Celery worker is running"
+else
+    echo -e "${YELLOW}⚠️ Celery worker may not be running${NC}"
+fi
+
+if docker compose ps celery-beat | grep -q "Up"; then
+    echo -e "${GREEN}✓${NC} Celery beat scheduler is running"
+else
+    echo -e "${YELLOW}⚠️ Celery beat scheduler may not be running${NC}"
 fi
 
 # Show status
 echo ""
 echo "📊 Container Status:"
-docker-compose -f docker-compose.prod.yml ps
+docker compose ps
 
 # Show logs
 echo ""
 echo "📝 Recent logs:"
-docker-compose -f docker-compose.prod.yml logs --tail=20
+docker compose logs --tail=20
 
 echo ""
 echo -e "${GREEN}✅ Deployment successful!${NC}"
@@ -110,8 +129,8 @@ echo "   Docs:     http://localhost/api/v1/docs"
 echo "   Health:   http://localhost/health"
 echo ""
 echo "📊 Monitoring:"
-echo "   docker-compose -f docker-compose.prod.yml logs -f"
-echo "   docker-compose -f docker-compose.prod.yml ps"
+echo "   docker compose logs -f"
+echo "   docker compose ps"
 echo ""
 echo "🛑 To stop:"
-echo "   docker-compose -f docker-compose.prod.yml down"
+echo "   docker compose down"
