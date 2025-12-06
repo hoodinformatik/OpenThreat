@@ -9,7 +9,7 @@ jobs:
   quick-test:
     name: Quick Validation
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
 
     - name: Check Docker files
       run: |
-        docker compose -f docker-compose.prod.yml config > /dev/null
+        docker compose config > /dev/null
         echo "✅ Docker compose files are valid"
 
     - name: Security check script

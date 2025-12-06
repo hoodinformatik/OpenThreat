@@ -58,9 +58,9 @@ Production deployment (manual or on tag).
 **Fix:** Security scan is optional and won't block merges
 
 ### Issue: Docker build failing
-**Fix:** Check `docker-compose.prod.yml` syntax locally:
+**Fix:** Check `docker-compose.yml` syntax locally:
 ```bash
-docker compose -f docker-compose.prod.yml config
+docker compose config
 ```
 
 ---
@@ -77,10 +77,10 @@ pytest --cov=backend
 ./scripts/security_check.sh
 
 # Validate Docker compose
-docker compose -f docker-compose.prod.yml config
+docker compose config
 
 # Build images
-docker compose -f docker-compose.prod.yml build
+docker compose build
 ```
 
 ---
