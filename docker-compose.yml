@@ -1,100 +1,199 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/cache:/var/cache/nginx
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - openthreat-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://open-threats.com}
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://open-threats.com}
+      - API_URL=http://backend:8001
+    restart: unless-stopped
+    networks:
+      - openthreat-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openthreat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openthreat}
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - OLLAMA_HOST=${OLLAMA_HOST:-}
+      - SECRET_KEY=${SECRET_KEY}
+      - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - SMTP_ENABLED=${SMTP_ENABLED:-false}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-OpenThreat}
+    depends_on:
+      - postgres
+      - redis
+      # - ollama  # Uncomment if using Ollama for LLM features
+    restart: unless-stopped
+    networks:
+      - openthreat-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+      replicas: 2
+
   postgres:
     image: postgres:16-alpine
-    container_name: openthreat-db
     environment:
-      POSTGRES_USER: openthreat
-      POSTGRES_PASSWORD: openthreat
-      POSTGRES_DB: openthreat
-    ports:
-      - "5432:5432"
+      - POSTGRES_DB=${POSTGRES_DB:-openthreat}
+      - POSTGRES_USER=${POSTGRES_USER:-openthreat}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    # SECURITY: Port NOT exposed to host - only accessible within Docker network
+    # To access DB for admin tasks, use: docker compose -f docker-compose.prod.yml exec postgres psql -U openthreat
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U openthreat"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    restart: unless-stopped
     networks:
       - openthreat-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    command: >
+      postgres
+      -c shared_buffers=512MB
+      -c effective_cache_size=1536MB
+      -c maintenance_work_mem=128MB
+      -c max_connections=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
 
-  # Redis for caching and Celery broker
   redis:
     image: redis:7-alpine
-    container_name: openthreat-redis
-    ports:
-      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1000
+    # SECURITY: Port NOT exposed to host - only accessible within Docker network
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    restart: unless-stopped
     networks:
       - openthreat-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
-  # FastAPI Backend (will be added later)
-  # api:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.api
-  #   container_name: openthreat-api
-  #   environment:
-  #     DATABASE_URL: postgresql://openthreat:openthreat@postgres:5432/openthreat
-  #     REDIS_URL: redis://redis:6379/0
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    command: celery -A backend.celery_app worker --loglevel=info --concurrency=1
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openthreat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openthreat}
+      - REDIS_URL=redis://redis:6379
+      - OLLAMA_HOST=${OLLAMA_HOST:-}
+      - LLM_MODEL=${LLM_MODEL:-}
+    depends_on:
+      - postgres
+      - redis
+      # - ollama  # Uncomment if using Ollama for LLM features
+    restart: unless-stopped
+    networks:
+      - openthreat-network
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A backend.celery_app inspect ping | grep -q 'pong'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+      replicas: 2
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    command: celery -A backend.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openthreat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openthreat}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - openthreat-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('ok')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  # Ollama service - uncomment if you want to use local LLM features
+  # Requires ~4GB RAM and ~2GB disk space for the image
+  # ollama:
+  #   image: ollama/ollama:latest
   #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - openthreat-network
-
-  # Celery Worker for background tasks (will be added later)
-  # worker:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.worker
-  #   container_name: openthreat-worker
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
   #   environment:
-  #     DATABASE_URL: postgresql://openthreat:openthreat@postgres:5432/openthreat
-  #     REDIS_URL: redis://redis:6379/0
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
+  #     - OLLAMA_NUM_PARALLEL=4
+  #     - OLLAMA_MAX_LOADED_MODELS=1
+  #   restart: unless-stopped
   #   networks:
   #     - openthreat-network
-
-  # Celery Beat for scheduled tasks (will be added later)
-  # beat:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.worker
-  #   container_name: openthreat-beat
-  #   command: celery -A backend.tasks beat --loglevel=info
-  #   environment:
-  #     DATABASE_URL: postgresql://openthreat:openthreat@postgres:5432/openthreat
-  #     REDIS_URL: redis://redis:6379/0
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - openthreat-network
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '2.0'
+  #         memory: 4G
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+  # ollama_data:
+  #   driver: local
 
 networks:
   openthreat-network:

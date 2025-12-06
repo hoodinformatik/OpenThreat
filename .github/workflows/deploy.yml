@@ -48,34 +48,40 @@ jobs:
           git reset --hard origin/main
 
           echo "🛑 Stopping containers..."
-          docker compose -f docker-compose.prod.yml down || true
+          docker compose down || true
 
           echo "🔨 Building images..."
-          docker compose -f docker-compose.prod.yml build backend frontend
+          docker compose build backend frontend celery-worker celery-beat
 
           echo "🚀 Starting containers..."
-          docker compose -f docker-compose.prod.yml up -d
+          docker compose up -d
+
+          echo "⏳ Waiting for Celery workers to be ready..."
+          sleep 5
+
+          echo "📰 Triggering initial news fetch..."
+          docker compose exec -T celery-worker python -c "from backend.tasks.news_tasks import fetch_news_articles_task; fetch_news_articles_task.delay()" || echo "⚠️ News fetch trigger failed - will run on schedule"
 
           echo "⏳ Waiting for backend to be ready..."
           sleep 10
 
           echo "🔄 Running database migrations..."
-          docker compose -f docker-compose.prod.yml exec -T backend alembic upgrade head || echo "⚠️ Migration failed or already up to date"
+          docker compose exec -T backend alembic upgrade head || echo "⚠️ Migration failed or already up to date"
 
           echo "📊 Creating stats cache table (if not exists)..."
-          cat backend/migrations/create_stats_cache.sql | docker compose -f docker-compose.prod.yml exec -T postgres psql -U openthreat -d openthreat || echo "⚠️ Stats cache table already exists or creation failed"
+          cat backend/migrations/create_stats_cache.sql | docker compose exec -T postgres psql -U openthreat -d openthreat || echo "⚠️ Stats cache table already exists or creation failed"
 
           echo "📊 Checking if KEV data needs initialization..."
-          if docker compose -f docker-compose.prod.yml exec -T backend python3 scripts/check_kev_status.py > /tmp/kev_count.txt 2>&1; then
+          if docker compose exec -T backend python3 scripts/check_kev_status.py > /tmp/kev_count.txt 2>&1; then
             KEV_COUNT=$(cat /tmp/kev_count.txt)
             echo "✓ KEV data already initialized ($KEV_COUNT exploited CVEs)"
           else
             echo "🔐 Initializing CISA KEV data (first deployment)..."
-            docker compose -f docker-compose.prod.yml exec -T backend python3 scripts/fetch_cisa_kev.py || echo "⚠️ KEV initialization failed - run manually: python3 scripts/fetch_cisa_kev.py"
+            docker compose exec -T backend python3 scripts/fetch_cisa_kev.py || echo "⚠️ KEV initialization failed - run manually: python3 scripts/fetch_cisa_kev.py"
           fi
 
           echo "📈 Refreshing vulnerability stats cache..."
-          docker compose -f docker-compose.prod.yml exec -T backend python3 scripts/refresh_stats_cache.py || echo "⚠️ Stats cache refresh failed - will be updated on next ingestion"
+          docker compose exec -T backend python3 scripts/refresh_stats_cache.py || echo "⚠️ Stats cache refresh failed - will be updated on next ingestion"
 
           echo "✅ Deployment completed!"
 
