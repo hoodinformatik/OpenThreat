@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, Search, BarChart3, Rss, Info, Menu, X, Newspaper } from "lucide-react";
+import { Shield, Search, BarChart3, Rss, Info, Menu, X, Newspaper, ScanSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UserMenu from "./user-menu";
 import { NotificationCenter } from "./NotificationCenter";
@@ -16,6 +16,7 @@ export function Navigation() {
   const links = [
     { href: "/", label: "Dashboard", icon: BarChart3 },
     { href: "/vulnerabilities", label: "Vulnerabilities", icon: Shield },
+    { href: "/scan", label: "Scan", icon: ScanSearch },
     { href: "/news", label: "News", icon: Newspaper },
     { href: "/search", label: "Search", icon: Search },
     { href: "/feeds", label: "RSS Feeds", icon: Rss },

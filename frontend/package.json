@@ -25,7 +25,8 @@
     "recharts": "^2.13.3",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.1.0",
+    "react-dropzone": "^14.2.3"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
