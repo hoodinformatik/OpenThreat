@@ -89,6 +89,7 @@ app.add_api_route(
 # Include routers
 from .api import (
     admin,
+    analytics,
     auth,
     bookmarks,
     comments,
@@ -127,6 +128,7 @@ app.include_router(cve_votes.router, prefix="/api/v1", tags=["CVE Voting"])
 app.include_router(trending.router, prefix="/api/v1", tags=["Trending"])
 app.include_router(news.router, prefix="/api/v1", tags=["News"])
 app.include_router(techstack.router, prefix="/api/v1", tags=["Tech Stack"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
 
 
 @app.get("/")

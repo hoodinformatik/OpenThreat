@@ -926,6 +926,46 @@ class TechStackMatch(Base):
         return f"<TechStackMatch(package={self.package_name}, cve={self.vulnerability_id})>"
 
 
+class PageView(Base):
+    """
+    Track page views for site analytics.
+    Stores anonymous visitor data for statistics.
+    """
+
+    __tablename__ = "page_views"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Page info
+    path = Column(String(500), nullable=False, index=True)
+    referrer = Column(String(1000), nullable=True)
+
+    # Visitor info (anonymized)
+    visitor_id = Column(String(64), nullable=True, index=True)  # Anonymous session ID
+    country = Column(String(100), nullable=True, index=True)
+    city = Column(String(200), nullable=True)
+    device_type = Column(String(50), nullable=True)  # desktop, mobile, tablet
+    browser = Column(String(100), nullable=True)
+    os = Column(String(100), nullable=True)
+
+    # Timestamps
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
+
+    # Indexes for analytics queries
+    __table_args__ = (
+        Index("idx_page_views_path_created", "path", "created_at"),
+        Index("idx_page_views_date", "created_at"),
+    )
+
+    def __repr__(self):
+        return f"<PageView(path={self.path}, created_at={self.created_at})>"
+
+
 class PackageCPEMapping(Base):
     """
     Known mappings between package names and CPE identifiers.

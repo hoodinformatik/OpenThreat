@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navigation } from "@/components/navigation";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <AuthProvider>
+            <AnalyticsProvider>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden transition-colors">
               <Navigation />
               {/* Padding top for fixed nav */}
@@ -59,6 +61,7 @@ export default function RootLayout({
                 </p>
               </footer>
             </div>
+            </AnalyticsProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

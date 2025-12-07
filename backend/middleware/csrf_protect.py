@@ -49,6 +49,7 @@ def should_skip_csrf(request: Request) -> bool:
         "/docs",
         "/redoc",
         "/openapi.json",
+        "/api/v1/analytics/track",  # Analytics tracking from frontend
     ]
 
     if request.url.path in skip_paths:
