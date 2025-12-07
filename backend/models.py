@@ -810,3 +810,160 @@ class WaitlistEntry(Base):
 
     def __repr__(self):
         return f"<WaitlistEntry(email={self.email}, verified={self.is_verified})>"
+
+
+# =============================================================================
+# Tech Stack Models - For CVE Matching
+# =============================================================================
+
+
+class TechStack(Base):
+    """
+    User's technology stack for CVE vulnerability matching.
+    Can be created by anonymous users (session_id) or authenticated users (user_id).
+    """
+
+    __tablename__ = "tech_stacks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+
+    # Owner - either session_id (anonymous) or user_id (authenticated)
+    session_id = Column(String(64), nullable=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+
+    # Packages stored as JSONB array
+    # Format: [{"name": "react", "version": "18.2.0", "ecosystem": "npm"}, ...]
+    packages = Column(JSONB, nullable=False, default=list)
+
+    # Source file type that was parsed
+    source_type = Column(
+        String(50), nullable=True
+    )  # package.json, requirements.txt, etc.
+
+    # Statistics (cached for performance)
+    package_count = Column(Integer, nullable=False, default=0)
+    vulnerable_count = Column(Integer, nullable=False, default=0)
+    critical_count = Column(Integer, nullable=False, default=0)
+    high_count = Column(Integer, nullable=False, default=0)
+
+    # Last scan timestamp
+    last_scanned_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Timestamps
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationships
+    user = relationship("User", backref="tech_stacks")
+    matches = relationship(
+        "TechStackMatch", back_populates="tech_stack", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self):
+        return f"<TechStack(name={self.name}, packages={self.package_count})>"
+
+
+class TechStackMatch(Base):
+    """
+    Cached CVE matches for a tech stack package.
+    Links a package in a tech stack to a vulnerability.
+    """
+
+    __tablename__ = "tech_stack_matches"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tech_stack_id = Column(
+        Integer, ForeignKey("tech_stacks.id", ondelete="CASCADE"), nullable=False
+    )
+    vulnerability_id = Column(
+        Integer, ForeignKey("vulnerabilities.id", ondelete="CASCADE"), nullable=False
+    )
+
+    # Package info
+    package_name = Column(String(255), nullable=False)
+    package_version = Column(String(100), nullable=True)
+    ecosystem = Column(String(50), nullable=False)  # npm, pypi, rubygems, etc.
+
+    # Match details
+    match_type = Column(
+        String(50), nullable=False
+    )  # exact, version_range, product_name
+    match_confidence = Column(Float, nullable=False, default=0.5)
+
+    # Matched CPE or product info
+    matched_cpe = Column(String(500), nullable=True)
+    matched_vendor = Column(String(255), nullable=True)
+    matched_product = Column(String(255), nullable=True)
+
+    # Timestamps
+    matched_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationships
+    tech_stack = relationship("TechStack", back_populates="matches")
+    vulnerability = relationship("Vulnerability")
+
+    # Indexes
+    __table_args__ = (
+        Index("ix_tech_stack_matches_package", "package_name", "ecosystem"),
+    )
+
+    def __repr__(self):
+        return f"<TechStackMatch(package={self.package_name}, cve={self.vulnerability_id})>"
+
+
+class PackageCPEMapping(Base):
+    """
+    Known mappings between package names and CPE identifiers.
+    Used to improve CVE matching accuracy.
+    """
+
+    __tablename__ = "package_cpe_mappings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ecosystem = Column(String(50), nullable=False)  # npm, pypi, etc.
+    package_name = Column(String(255), nullable=False)
+
+    # CPE components
+    cpe_vendor = Column(String(255), nullable=False)
+    cpe_product = Column(String(255), nullable=False)
+
+    # Confidence and source
+    confidence = Column(Float, nullable=False, default=1.0)
+    source = Column(String(50), nullable=False, default="manual")  # manual, nvd, osv
+    verified = Column(Boolean, nullable=False, default=False)
+
+    # Timestamps
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Indexes
+    __table_args__ = (
+        Index("ix_package_cpe_mappings_lookup", "ecosystem", "package_name"),
+    )
+
+    def __repr__(self):
+        return f"<PackageCPEMapping({self.ecosystem}:{self.package_name} -> {self.cpe_vendor}:{self.cpe_product})>"
