@@ -410,6 +410,13 @@ export default function ScanPage() {
           <p className="text-gray-600 dark:text-gray-400">
             Upload your dependency file to check for known CVE vulnerabilities
           </p>
+          {/* Experimental Notice */}
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <span className="text-sm text-amber-700 dark:text-amber-300">
+              <strong>Experimental:</strong> Dieses Feature befindet sich noch in aktiver Entwicklung.
+            </span>
+          </div>
         </div>
 
         {/* Upload Area */}

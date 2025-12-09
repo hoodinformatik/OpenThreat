@@ -12,6 +12,7 @@ from datetime import datetime
 from backend.celery_app import celery_app as celery
 from backend.database import get_db
 from backend.services.cisa_kev_service import get_cisa_kev_service
+from backend.services.nvd_complete_service import get_nvd_service
 from backend.services.stats_cache_service import refresh_stats_cache
 
 logger = logging.getLogger(__name__)
@@ -103,3 +104,42 @@ def refresh_stats_cache_task() -> dict:
 
     finally:
         db.close()
+
+
+@celery.task(name="tasks.fetch_nvd_recent", bind=True, max_retries=3)
+def fetch_nvd_recent_task(self, days: int = 1) -> dict:
+    """
+    Fetch recent CVEs from NVD (modified in last N days).
+
+    This task should run daily to keep CVE data up-to-date.
+    It fetches CVEs that were published or modified recently.
+
+    Args:
+        days: Number of days to look back (default: 1)
+
+    Returns:
+        Dict with status and results
+    """
+    try:
+        logger.info(f"Starting NVD recent fetch task (last {days} days)")
+
+        # Get NVD service
+        nvd_service = get_nvd_service()
+
+        # Fetch recent CVEs
+        count = nvd_service.fetch_recent_cves(days=days)
+
+        logger.info(f"NVD recent fetch complete: {count} CVEs processed")
+
+        return {
+            "status": "success",
+            "cves_processed": count,
+            "days": days,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error(f"NVD recent fetch task failed: {e}")
+
+        # Retry with exponential backoff
+        raise self.retry(exc=e, countdown=300 * (2**self.request.retries))

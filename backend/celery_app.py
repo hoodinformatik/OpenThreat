@@ -38,6 +38,12 @@ celery_app.conf.update(
 
 # Scheduled tasks (Beat schedule)
 celery_app.conf.beat_schedule = {
+    # Fetch NVD recent CVEs - Every 6 hours to keep CVE data up-to-date
+    "fetch-nvd-recent": {
+        "task": "tasks.fetch_nvd_recent",
+        "schedule": crontab(minute=0, hour="*/6"),  # Every 6 hours
+        "kwargs": {"days": 2},  # Look back 2 days to catch any missed updates
+    },
     # Fetch CISA KEV (Known Exploited Vulnerabilities) daily at 09:00 UTC
     "fetch-cisa-kev": {
         "task": "tasks.fetch_cisa_kev",
@@ -48,9 +54,9 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.refresh_stats_cache",
         "schedule": crontab(minute="*/5"),  # Every 5 minutes
     },
-    # LLM Processing Tasks - Only for NEW CVEs
+    # LLM Processing Tasks - Only for NEW CVEs (fixed task name)
     "process-new-cves": {
-        "task": "backend.tasks.llm_tasks.process_new_cves",
+        "task": "tasks.process_new_cves",
         "schedule": crontab(minute="*/10"),  # Every 10 minutes
     },
     # News fetching - Every 30 minutes

@@ -158,19 +158,16 @@ export default function SiteStatsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <BarChart3 className="h-8 w-8 text-blue-600" />
-            Site Statistics
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Visitor analytics and site performance metrics
-          </p>
-        </div>
-        <div className="flex items-center gap-4 mt-4 md:mt-0">
+    <div className="space-y-8">
+      {/* Header - Centered like Dashboard */}
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+          Site Statistics
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Visitor analytics and site performance metrics
+        </p>
+        <div className="flex items-center justify-center gap-4">
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
