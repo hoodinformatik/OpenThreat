@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, BarChart3, Info, Menu, X, Newspaper, ScanSearch, TrendingUp, Layers } from "lucide-react";
+import { Shield, BarChart3, Info, Menu, X, Newspaper, TrendingUp, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UserMenu from "./user-menu";
 import { NotificationCenter } from "./NotificationCenter";
@@ -15,8 +15,7 @@ export function Navigation() {
 
   const links = [
     { href: "/", label: "Dashboard", icon: BarChart3 },
-    { href: "/scan", label: "Scan", icon: ScanSearch },
-    { href: "/my-stack", label: "My Stack", icon: Layers },
+    { href: "/my-stack", label: "My Stack", icon: Layers, isNew: true },
     { href: "/news", label: "News", icon: Newspaper },
     { href: "/site-stats", label: "Site Stats", icon: TrendingUp },
     { href: "/about", label: "About", icon: Info },
@@ -50,7 +49,14 @@ export function Navigation() {
                           : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <span className="relative inline-flex">
+                        <Icon className="h-4 w-4" />
+                        {link.isNew && (
+                          <span className="absolute -top-2 -right-2 px-1 py-px rounded-full bg-emerald-500 text-white text-[8px] font-bold leading-tight">
+                            New
+                          </span>
+                        )}
+                      </span>
                       <span>{link.label}</span>
                     </Link>
                   );
@@ -118,11 +124,18 @@ export function Navigation() {
                     className={cn(
                       "flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
                       isActive
-                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                        ? "bg-primary/10 text-primary"
                         : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                     )}
                   >
-                    <Icon className="h-5 w-5" />
+                    <span className="relative inline-flex">
+                      <Icon className="h-5 w-5" />
+                      {link.isNew && (
+                        <span className="absolute -top-2 -right-2 px-1 py-px rounded-full bg-emerald-500 text-white text-[8px] font-bold leading-tight">
+                          New
+                        </span>
+                      )}
+                    </span>
                     <span>{link.label}</span>
                   </Link>
                 );
