@@ -11,6 +11,15 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "OpenThreat - Public Threat Intelligence Dashboard",
   description: "Democratizing Threat Intelligence - Free and open-source CVE tracking",
+  alternates: {
+    types: {
+      "application/rss+xml": [
+        { url: "/api/v1/feeds/rss", title: "OpenThreat - Recent Vulnerabilities" },
+        { url: "/api/v1/feeds/exploited", title: "OpenThreat - Actively Exploited Vulnerabilities" },
+        { url: "/api/v1/feeds/critical", title: "OpenThreat - Critical Vulnerabilities" },
+      ],
+    },
+  },
 };
 
 export default function RootLayout({
@@ -40,23 +49,32 @@ export default function RootLayout({
                     href="https://github.com/hoodinformatik/OpenThreat"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
+                    className="text-primary hover:text-primary/80 hover:underline"
                   >
                     GitHub
                   </a>
                   {" · "}
                   <a
                     href="mailto:hoodinformatik@gmail.com"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
+                    className="text-primary hover:text-primary/80 hover:underline"
                   >
                     Contact
                   </a>
                   {" · "}
                   <a
                     href="/privacy"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
+                    className="text-primary hover:text-primary/80 hover:underline"
                   >
                     Privacy Policy
+                  </a>
+                  {" · "}
+                  <a
+                    href="/api/v1/feeds/rss"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-primary/80 hover:underline"
+                  >
+                    RSS Feed
                   </a>
                 </p>
               </footer>

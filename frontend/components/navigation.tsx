@@ -27,7 +27,7 @@ export function Navigation() {
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center space-x-8">
               <Link href="/" className="flex items-center space-x-2">
-                <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                <Shield className="h-8 w-8 text-primary" />
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
                   OpenThreat
                 </span>
@@ -45,7 +45,7 @@ export function Navigation() {
                       className={cn(
                         "flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
                         isActive
-                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                          ? "bg-primary/10 text-primary"
                           : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                       )}
                     >

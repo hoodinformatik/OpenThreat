@@ -32,6 +32,7 @@ class NVDCompleteService:
     """Service for fetching complete CVE data from NVD API 2.0"""
 
     BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    CVE_ORG_URL = "https://cveawg.mitre.org/api/cve/"
     RESULTS_PER_PAGE = 2000  # NVD API max
     RATE_LIMIT_DELAY = 6  # seconds (10 requests per minute for no API key)
 
@@ -325,6 +326,17 @@ class NVDCompleteService:
         for products in vendors_products.values():
             product_list.extend(products)
 
+        # NVD hasn't finished CPE analysis yet for many freshly-published CVEs
+        # (configurations is empty). Fall back to the CVE.org CVE Services API,
+        # which exposes the CNA-reported vendor/product before NVD analysis
+        # completes, so we don't end up with an empty vendor/product list.
+        if not vendor_list and not product_list:
+            fallback_vendors_products = self._fetch_vendor_product_fallback(cve_id)
+            if fallback_vendors_products:
+                vendor_list = list(fallback_vendors_products.keys())
+                for products in fallback_vendors_products.values():
+                    product_list.extend(products)
+
         # Check if CVE exists
         existing = (
             db.query(Vulnerability).filter(Vulnerability.cve_id == cve_id).first()
@@ -442,6 +454,48 @@ class NVDCompleteService:
                 vendors_products[vendor].add(product)
 
         return vendors_products
+
+    def _fetch_vendor_product_fallback(self, cve_id: str) -> Dict[str, set]:
+        """
+        Fetch CNA-reported vendor/product from the CVE.org CVE Services API.
+
+        Used when NVD's own CPE match data (`configurations`) is still empty
+        for a CVE, which commonly happens for newly-published CVEs before
+        NVD's analysts finish CPE analysis (a lag of days to weeks). CVE.org
+        exposes the vendor/product the CNA reported at submission time, so it
+        is usually available immediately.
+
+        Args:
+            cve_id: CVE identifier (e.g. "CVE-2026-12345")
+
+        Returns:
+            Dict mapping vendor names to sets of product names (empty on any
+            failure - this is a best-effort enrichment, never fatal).
+        """
+        try:
+            response = requests.get(f"{self.CVE_ORG_URL}{cve_id}", timeout=5)
+            if response.status_code != 200:
+                return {}
+
+            data = response.json()
+            affected = data.get("containers", {}).get("cna", {}).get("affected", [])
+
+            vendors_products = {}
+            for item in affected:
+                vendor = (item.get("vendor") or "").strip()
+                product = (item.get("product") or "").strip()
+
+                if not vendor or vendor.lower() in ("n/a", "unknown", ""):
+                    continue
+
+                vendors_products.setdefault(vendor, set())
+                if product and product.lower() not in ("n/a", "unknown", ""):
+                    vendors_products[vendor].add(product)
+
+            return vendors_products
+        except Exception as e:
+            logger.debug(f"CVE.org fallback lookup failed for {cve_id}: {e}")
+            return {}
 
     def _calculate_priority(
         self,

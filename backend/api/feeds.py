@@ -27,7 +27,7 @@ def generate_rss_feed(vulnerabilities, title, description, base_url):
 
         # Escape XML special characters
         cve_id = html.escape(vuln.cve_id)
-        vuln_title = html.escape(vuln.title or "")
+        vuln_title = html.escape(vuln.simple_title or vuln.title or "")
 
         # Build description
         desc_parts = []

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Heart, Users, Book, Github, Mail } from "lucide-react";
+import { Shield, Heart, Users, Book, Github, Mail, Rss } from "lucide-react";
 
 export default function AboutPage() {
   return (
@@ -72,7 +72,13 @@ export default function AboutPage() {
               <li>• Comprehensive CVE database</li>
               <li>• Priority scoring for triage</li>
               <li>• REST API for integration</li>
-              <li>• RSS feeds for monitoring</li>
+              <li>
+                •{" "}
+                <a href="/api/v1/feeds/rss" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600 dark:hover:text-blue-400">
+                  RSS feeds
+                </a>{" "}
+                for monitoring
+              </li>
               <li>• Advanced search & filtering</li>
             </ul>
           </CardContent>
@@ -158,6 +164,50 @@ export default function AboutPage() {
                 real-world observations.
               </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* RSS Feeds */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Rss className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <span>RSS Feeds</span>
+          </CardTitle>
+          <CardDescription>
+            Subscribe in your feed reader to monitor new vulnerabilities without checking the site
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a
+              href="/api/v1/feeds/rss"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-4 rounded-md border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+            >
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Recent Vulnerabilities</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300">Latest CVEs as they're ingested</p>
+            </a>
+            <a
+              href="/api/v1/feeds/exploited"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-4 rounded-md border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+            >
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Actively Exploited</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300">CISA KEV / exploited-in-the-wild CVEs</p>
+            </a>
+            <a
+              href="/api/v1/feeds/critical"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-4 rounded-md border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+            >
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Critical Severity</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300">Only CVSS-critical vulnerabilities</p>
+            </a>
           </div>
         </CardContent>
       </Card>

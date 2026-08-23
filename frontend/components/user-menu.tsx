@@ -21,15 +21,10 @@ export default function UserMenu() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // No sign-up/sign-in flow is offered yet - nothing to show here for
+  // logged-out visitors.
   if (!isAuthenticated) {
-    return (
-      <Link
-        href="/auth"
-        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        Waitlist
-      </Link>
-    );
+    return null;
   }
 
   const getRoleBadgeColor = (role: string) => {

@@ -99,9 +99,15 @@ class LLMService:
     ) -> Dict[str, str]:
         """Generate simple title and description without LLM (rule-based)."""
 
-        # Build simple title
-        vendor_str = vendors[0] if vendors and len(vendors) > 0 else "Unknown"
-        product_str = products[0] if products and len(products) > 0 else "Software"
+        # Build simple title. Only use vendor/product if we actually have
+        # them - fabricating "Unknown Software" is misleading when NVD/CVE.org
+        # simply haven't published affected-product data for this CVE yet.
+        vendor_str = vendors[0] if vendors else None
+        product_str = products[0] if products else None
+        if vendor_str and product_str:
+            target_str = f"{vendor_str} {product_str}"
+        else:
+            target_str = vendor_str or product_str
 
         # Extract vulnerability type from description
         vuln_type = "Vulnerability"
@@ -129,7 +135,9 @@ class LLMService:
             vuln_type = "Command Injection"
 
         # Create simple title
-        simple_title = f"{vuln_type} in {vendor_str} {product_str}"
+        simple_title = (
+            f"{vuln_type} in {target_str}" if target_str else f"{vuln_type} ({cve_id})"
+        )
         if severity:
             simple_title = f"{severity.title()} {simple_title}"
 
@@ -181,17 +189,34 @@ class LLMService:
             )
 
         try:
-            # Build context
-            vendor_str = ", ".join(vendors[:3]) if vendors else "Unknown"
-            product_str = ", ".join(products[:3]) if products else "Unknown"
+            # Build context. Leave vendor/product out of the prompt entirely
+            # when we don't have real data for them - telling the model
+            # "Unknown"/"Unknown" reliably makes it hallucinate a literal
+            # "Unknown Software" title instead of writing around the gap.
+            vendor_str = ", ".join(vendors[:3]) if vendors else None
+            product_str = ", ".join(products[:3]) if products else None
             date_str = published_at.strftime("%Y-%m-%d") if published_at else "Unknown"
+
+            if vendor_str or product_str:
+                target_lines = (
+                    f"Affected Vendor: {vendor_str or 'Not specified'}\n"
+                    f"Affected Product: {product_str or 'Not specified'}"
+                )
+                format_hint = 'Example format: "Security Flaw in Microsoft Windows Allows Remote Access"'
+            else:
+                target_lines = (
+                    "Affected Vendor/Product: not yet published for this CVE - "
+                    'do NOT invent one, and do NOT write "Unknown Software" '
+                    "or similar placeholders. Describe the vulnerability type "
+                    "instead and reference the CVE ID directly."
+                )
+                format_hint = f'Example format: "Critical Remote Code Execution Flaw Found in {cve_id}"'
 
             # Prompt for title generation
             title_prompt = f"""You are a cybersecurity expert explaining vulnerabilities to non-technical users.
 
 CVE ID: {cve_id}
-Affected Vendor: {vendor_str}
-Affected Product: {product_str}
+{target_lines}
 Severity: {severity or 'Unknown'}
 CVSS Score: {cvss_score or 'Unknown'}
 
@@ -200,9 +225,9 @@ Technical Description:
 
 Generate a SHORT, simple title (maximum 10 words) that describes:
 1. What the vulnerability is (in simple terms)
-2. Where it affects (vendor/product)
+2. Where it affects (vendor/product), if known
 
-Example format: "Security Flaw in Microsoft Windows Allows Remote Access"
+{format_hint}
 
 Generate ONLY the title, nothing else:"""
 
@@ -219,6 +244,22 @@ Generate ONLY the title, nothing else:"""
             # Remove quotes if present
             simple_title = simple_title.strip('"').strip("'").strip()
 
+            # Small local models sometimes hallucinate the placeholder text
+            # despite the prompt telling them not to - fall back to the
+            # rule-based title (which never fabricates a vendor/product) if
+            # that happens.
+            if "unknown software" in simple_title.lower():
+                simple_title = self._generate_simple_summary(
+                    cve_id,
+                    original_title,
+                    description,
+                    cvss_score,
+                    severity,
+                    vendors,
+                    products,
+                    published_at,
+                )["simple_title"]
+
             # Prompt for description generation
             desc_prompt = f"""You are a cybersecurity expert explaining vulnerabilities to non-technical users.
 
@@ -226,7 +267,7 @@ CVE ID: {cve_id}
 Date: {date_str}
 Severity: {severity or 'Unknown'}
 CVSS Score: {cvss_score or 'Unknown'}/10
-Affected: {vendor_str} {product_str}
+Affected: {vendor_str or product_str or 'not yet published for this CVE - do not invent a vendor or product name'}
 
 Technical Description:
 {description[:800]}

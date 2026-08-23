@@ -210,7 +210,7 @@ export function DashboardContent() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Clock className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+          <Clock className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
@@ -237,7 +237,7 @@ export function DashboardContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search CVE ID, title, description, vendor, product..."
-              className="w-full pl-12 pr-24 py-3 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+              className="w-full pl-12 pr-24 py-3 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent shadow-sm"
             />
             <Button
               type="submit"
@@ -272,7 +272,7 @@ export function DashboardContent() {
                 onClick={() => { setViewMode('recent'); setPage(1); }}
                 className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   viewMode === 'recent'
-                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                    ? 'bg-white dark:bg-gray-700 text-primary shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
@@ -304,11 +304,11 @@ export function DashboardContent() {
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex-shrink-0 ${hasActiveFilters ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400" : ""}`}
+              className={`flex-shrink-0 ${hasActiveFilters ? "border-primary text-primary" : ""}`}
             >
               <Filter className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Filter</span>
-              {hasActiveFilters && <span className="ml-1 md:ml-2 bg-blue-600 text-white rounded-full w-2 h-2 md:w-auto md:h-auto md:px-2 md:py-0.5 text-xs">•</span>}
+              {hasActiveFilters && <span className="ml-1 md:ml-2 bg-primary text-primary-foreground rounded-full w-2 h-2 md:w-auto md:h-auto md:px-2 md:py-0.5 text-xs">•</span>}
             </Button>
           </div>
         </div>
@@ -321,7 +321,7 @@ export function DashboardContent() {
                 value={severity}
                 onChange={(e) => handleSeverityChange(e.target.value)}
                 disabled={isFiltering}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
               >
                 <option value="">All Severities</option>
                 <option value="CRITICAL">Critical</option>
@@ -334,7 +334,7 @@ export function DashboardContent() {
                 value={exploited}
                 onChange={(e) => handleExploitedChange(e.target.value)}
                 disabled={isFiltering}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
               >
                 <option value="">All CVEs</option>
                 <option value="true">Exploited Only</option>
@@ -386,7 +386,7 @@ export function DashboardContent() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-3">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary transition-colors mb-3">
                           {displayTitle}
                         </h3>
 
@@ -395,7 +395,7 @@ export function DashboardContent() {
                         </p>
 
                         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+                          <span className="font-mono font-semibold text-primary">
                             {vuln.cve_id}
                           </span>
 

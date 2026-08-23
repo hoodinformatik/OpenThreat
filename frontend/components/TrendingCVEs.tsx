@@ -127,7 +127,7 @@ export function TrendingCVEs({
               onClick={() => setTimeRange(range)}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 timeRange === range
-                  ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                  ? 'bg-white dark:bg-gray-800 text-primary shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -164,7 +164,7 @@ export function TrendingCVEs({
             <Link
               key={cve.cve_id}
               href={`/vulnerabilities/${cve.cve_id}`}
-              className="flex gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md transition-all group"
+              className="flex gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-md transition-all group"
             >
               {/* Rank & Vote */}
               <div className="flex flex-col items-center gap-2">
@@ -183,7 +183,7 @@ export function TrendingCVEs({
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors">
                       {cve.cve_id}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -229,7 +229,7 @@ export function TrendingCVEs({
         <div className="mt-6 text-center">
           <Link
             href={`/trending?type=${trendingType}&range=${timeRange}`}
-            className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
           >
             View All Trending CVEs
             <TrendingUp className="h-4 w-4" />
