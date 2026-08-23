@@ -23,7 +23,6 @@ import {
   generateActionPlan,
   explainCVE,
 } from "@/lib/explanations";
-import { VulnerabilityComments } from "@/components/VulnerabilityComments";
 import { notFound } from "next/navigation";
 
 // API URL - use internal Docker network URL for SSR, public URL for client
@@ -328,9 +327,6 @@ export default async function VulnerabilityDetailPage({
           </CardContent>
         </Card>
       )}
-
-      {/* Comments Section */}
-      <VulnerabilityComments cveId={cveId} />
     </div>
   );
 }

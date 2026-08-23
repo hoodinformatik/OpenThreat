@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import Link from "next/link";
 import {
-  Upload,
   Plus,
   Trash2,
   Download,
@@ -14,12 +13,16 @@ import {
   Sparkles,
   FileJson,
   Shield,
+  X,
+  ListPlus,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getSeverityBadgeColor } from "@/lib/utils";
-import { parseDependencyFile } from "@/lib/techstack-parsers";
+import { parseDependencyFile, ParsedPackage } from "@/lib/techstack-parsers";
 import {
   Stack,
   loadStacks,
@@ -30,6 +33,15 @@ import {
 } from "@/lib/stacks-storage";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+const ECOSYSTEMS = ["npm", "pypi", "rubygems", "packagist", "maven", "go", "cargo"];
+
+interface SupportedFormat {
+  filename: string;
+  ecosystem: string;
+  language: string;
+  description: string;
+}
 
 interface MatchedVuln {
   cve_id: string;
@@ -61,10 +73,25 @@ export default function MyStackPage() {
   const [error, setError] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
+  const [formats, setFormats] = useState<SupportedFormat[]>([]);
+  const [showFormats, setShowFormats] = useState(false);
+
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualName, setManualName] = useState("");
+  const [manualPackages, setManualPackages] = useState<ParsedPackage[]>([]);
+  const [pkgName, setPkgName] = useState("");
+  const [pkgVersion, setPkgVersion] = useState("");
+  const [pkgEcosystem, setPkgEcosystem] = useState("npm");
+
   useEffect(() => {
     const loaded = loadStacks();
     setStacks(loaded);
     if (loaded.length > 0) setActiveId(loaded[0].id);
+
+    fetch(`${API_URL}/api/v1/techstack/formats`)
+      .then((res) => res.json())
+      .then((data) => setFormats(data.formats || []))
+      .catch(() => {});
   }, []);
 
   const activeStack = stacks.find((s) => s.id === activeId) || null;
@@ -162,6 +189,33 @@ export default function MyStackPage() {
     }
   };
 
+  const addManualPackage = () => {
+    if (!pkgName.trim()) return;
+    setManualPackages((prev) => [
+      ...prev,
+      { name: pkgName.trim(), version: pkgVersion.trim() || null, ecosystem: pkgEcosystem, dev: false },
+    ]);
+    setPkgName("");
+    setPkgVersion("");
+  };
+
+  const removeManualPackage = (index: number) => {
+    setManualPackages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const createManualStack = () => {
+    if (!manualName.trim() || manualPackages.length === 0) return;
+    const stack = createStack(manualName.trim(), manualPackages);
+    const updated = [...stacks, stack];
+    setStacks(updated);
+    saveStacks(updated);
+    setActiveId(stack.id);
+    checkStack(stack);
+    setManualName("");
+    setManualPackages([]);
+    setManualOpen(false);
+  };
+
   const isNew = (stack: Stack, publishedAt: string | null) => {
     if (!stack.lastCheckedAt || !publishedAt) return false;
     return new Date(publishedAt) > new Date(stack.lastCheckedAt);
@@ -249,6 +303,46 @@ export default function MyStackPage() {
             </p>
           </div>
 
+          {/* Supported formats guide */}
+          <button
+            onClick={() => setShowFormats(!showFormats)}
+            className="w-full flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 px-1"
+          >
+            <span>Which file formats work?</span>
+            {showFormats ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </button>
+          {showFormats && (
+            <Card>
+              <CardContent className="pt-4 space-y-2">
+                {formats.length === 0 ? (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Loading...</p>
+                ) : (
+                  formats.map((f) => (
+                    <div key={f.filename} className="text-xs">
+                      <span className="font-mono font-semibold text-gray-900 dark:text-white">{f.filename}</span>
+                      <span className="text-gray-500 dark:text-gray-400"> — {f.description}</span>
+                    </div>
+                  ))
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  Drop the file as-is (e.g. your project's real <code className="font-mono">package.json</code> or{" "}
+                  <code className="font-mono">requirements.txt</code>) — no need to edit or reformat it first.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Manual builder trigger */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => setManualOpen(!manualOpen)}
+          >
+            <ListPlus className="h-4 w-4 mr-2" />
+            {manualOpen ? "Cancel" : "Build a stack manually"}
+          </Button>
+
           {/* Export / Import */}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1" onClick={handleExport} disabled={stacks.length === 0}>
@@ -271,7 +365,83 @@ export default function MyStackPage() {
 
         {/* Main: active stack results */}
         <div className="lg:col-span-3 space-y-4">
-          {!activeStack ? (
+          {manualOpen ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Build a Stack Manually</CardTitle>
+                <CardDescription>Add packages one at a time - no file needed</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <input
+                  type="text"
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  placeholder="Stack name (e.g. Work Laptop)"
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    type="text"
+                    value={pkgName}
+                    onChange={(e) => setPkgName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addManualPackage()}
+                    placeholder="Package name (e.g. lodash)"
+                    className="flex-1 min-w-[160px] px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <input
+                    type="text"
+                    value={pkgVersion}
+                    onChange={(e) => setPkgVersion(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addManualPackage()}
+                    placeholder="Version (optional)"
+                    className="w-36 px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <select
+                    value={pkgEcosystem}
+                    onChange={(e) => setPkgEcosystem(e.target.value)}
+                    className="px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {ECOSYSTEMS.map((eco) => (
+                      <option key={eco} value={eco}>{eco}</option>
+                    ))}
+                  </select>
+                  <Button type="button" onClick={addManualPackage} disabled={!pkgName.trim()}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
+
+                {manualPackages.length > 0 && (
+                  <div className="space-y-1">
+                    {manualPackages.map((pkg, idx) => (
+                      <div
+                        key={`${pkg.name}-${idx}`}
+                        className="flex items-center justify-between px-3 py-1.5 rounded-md bg-gray-50 dark:bg-gray-800 text-sm"
+                      >
+                        <span>
+                          <span className="font-mono font-medium text-gray-900 dark:text-white">{pkg.name}</span>
+                          {pkg.version && <span className="text-gray-500 dark:text-gray-400"> v{pkg.version}</span>}
+                          <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{pkg.ecosystem}</span>
+                        </span>
+                        <button onClick={() => removeManualPackage(idx)} className="text-gray-400 hover:text-red-500">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Button
+                  onClick={createManualStack}
+                  disabled={!manualName.trim() || manualPackages.length === 0}
+                  className="w-full"
+                >
+                  Create Stack &amp; Check for CVEs
+                </Button>
+              </CardContent>
+            </Card>
+          ) : !activeStack ? (
             <Card>
               <CardContent className="py-12 text-center text-gray-500 dark:text-gray-400">
                 Add a stack to see which CVEs affect it.
