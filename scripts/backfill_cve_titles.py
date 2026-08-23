@@ -21,6 +21,7 @@ Usage:
 """
 import sys
 import argparse
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -80,6 +81,9 @@ def backfill(dry_run: bool = False, limit: int = None):
                         vendors = list(fallback.keys())
                         for prods in fallback.values():
                             products.extend(prods)
+                    # Be considerate to the public CVE.org API - only sleep
+                    # when we actually made a network call.
+                    time.sleep(0.3)
 
                 summary = llm.generate_cve_summary(
                     cve_id=vuln.cve_id,

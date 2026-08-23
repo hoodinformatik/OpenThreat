@@ -6,9 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Shield, Clock, Calendar, Filter, X, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { formatDate, getSeverityBadgeColor } from "@/lib/utils";
-import { CVEVoteButton } from "@/components/CVEVoteButton";
-import { fetchTrendingCVEs } from "@/lib/api";
+import { formatDate, getSeverityBadgeColor, getSeverityAccentColor } from "@/lib/utils";
 
 const CLIENT_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 
@@ -41,9 +39,6 @@ export function DashboardContent() {
   const [page, setPage] = useState(1);
   const [isSearchMode, setIsSearchMode] = useState(false);
 
-  // View mode: 'recent', 'hot', 'top'
-  const [viewMode, setViewMode] = useState<'recent' | 'hot' | 'top'>('recent');
-
   // Track if we've already fetched to prevent double-fetching
   const hasFetched = useRef(false);
 
@@ -53,37 +48,6 @@ export function DashboardContent() {
       fetchInitialData();
     }
   }, []);
-
-  useEffect(() => {
-    if (viewMode !== 'recent') {
-      fetchTrendingData();
-    } else if (!isSearchMode) {
-      const cached = getCachedData('vulns:default');
-      if (cached) {
-        setRecentVulns(cached);
-      } else {
-        fetchFilteredVulns("", "", 1, "");
-      }
-    }
-  }, [viewMode]);
-
-  const fetchTrendingData = async () => {
-    setIsFiltering(true);
-    try {
-      const trendingType = viewMode === 'hot' ? 'hot' : 'top';
-      const response = await fetchTrendingCVEs({
-        trending_type: trendingType,
-        time_range: 'this_week',
-        page: 1,
-        page_size: 20,
-      });
-      setRecentVulns(response);
-    } catch (error) {
-      console.error("Failed to fetch trending data:", error);
-    } finally {
-      setIsFiltering(false);
-    }
-  };
 
   const fetchInitialData = async () => {
     try {
@@ -180,7 +144,6 @@ export function DashboardContent() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    setViewMode('recent');
     fetchFilteredVulns(severity, exploited, 1, searchQuery);
   };
 
@@ -220,12 +183,16 @@ export function DashboardContent() {
   return (
     <div className="space-y-8">
       {/* Hero Section with Search */}
-      <div className="text-center space-y-6 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+      <div className="text-center space-y-6 py-10">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase">
+          <Shield className="h-3.5 w-3.5" />
+          Live Threat Feed
+        </div>
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
           Latest Security Threats
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Stay informed about the latest vulnerabilities and security threats
+        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Track newly disclosed vulnerabilities as they're published, aggregated from CISA, NVD, and BSI CERT-Bund.
         </p>
 
         {/* Search Bar */}
@@ -256,60 +223,25 @@ export function DashboardContent() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              {isSearchMode ? 'Search Results' : viewMode === 'recent' ? 'Recent CVEs' : viewMode === 'hot' ? '🔥 Hot CVEs' : '🏆 Top CVEs'}
+              {isSearchMode ? 'Search Results' : 'Recent CVEs'}
             </h2>
-            {recentVulns && (
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {recentVulns.total?.toLocaleString() || 0} results
-              </span>
-            )}
-          </div>
-
-          {/* View Mode Toggle + Filter */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 flex-shrink-0">
-              <button
-                onClick={() => { setViewMode('recent'); setPage(1); }}
-                className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                  viewMode === 'recent'
-                    ? 'bg-white dark:bg-gray-700 text-primary shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+            <div className="flex items-center gap-3">
+              {recentVulns && (
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {recentVulns.total?.toLocaleString() || 0} results
+                </span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className={hasActiveFilters ? "border-primary text-primary" : ""}
               >
-                Recent
-              </button>
-              <button
-                onClick={() => { setViewMode('hot'); setPage(1); }}
-                className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                  viewMode === 'hot'
-                    ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                🔥 Hot
-              </button>
-              <button
-                onClick={() => { setViewMode('top'); setPage(1); }}
-                className={`px-2 md:px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                  viewMode === 'top'
-                    ? 'bg-white dark:bg-gray-700 text-yellow-600 dark:text-yellow-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                🏆 Top
-              </button>
+                <Filter className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Filter</span>
+                {hasActiveFilters && <span className="ml-1 md:ml-2 bg-primary text-primary-foreground rounded-full w-2 h-2 md:w-auto md:h-auto md:px-2 md:py-0.5 text-xs">•</span>}
+              </Button>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex-shrink-0 ${hasActiveFilters ? "border-primary text-primary" : ""}`}
-            >
-              <Filter className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Filter</span>
-              {hasActiveFilters && <span className="ml-1 md:ml-2 bg-primary text-primary-foreground rounded-full w-2 h-2 md:w-auto md:h-auto md:px-2 md:py-0.5 text-xs">•</span>}
-            </Button>
           </div>
         </div>
 
@@ -373,66 +305,55 @@ export function DashboardContent() {
                 href={`/vulnerabilities/${vuln.cve_id}`}
                 className="block"
               >
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <Card className={`border-l-4 ${getSeverityAccentColor(vuln.severity)} hover:shadow-lg transition-shadow cursor-pointer`}>
                   <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0" onClick={(e) => e.preventDefault()}>
-                        <CVEVoteButton
-                          cveId={vuln.cve_id}
-                          initialUpvotes={vuln.upvotes || 0}
-                          initialDownvotes={vuln.downvotes || 0}
-                          compact={true}
-                        />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-mono text-sm font-semibold text-primary">
+                          {vuln.cve_id}
+                        </span>
+                        {vuln.severity && vuln.severity !== 'UNKNOWN' && (
+                          <Badge className={getSeverityBadgeColor(vuln.severity)}>
+                            {vuln.severity}
+                          </Badge>
+                        )}
+                        {vuln.exploited_in_the_wild && (
+                          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-300 dark:border-red-700">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Exploited
+                          </Badge>
+                        )}
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary transition-colors mb-3">
-                          {displayTitle}
-                        </h3>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white hover:text-primary transition-colors mb-3">
+                        {displayTitle}
+                      </h3>
 
-                        <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
-                          {displayDescription}
-                        </p>
+                      <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
+                        {displayDescription}
+                      </p>
 
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-mono font-semibold text-primary">
-                            {vuln.cve_id}
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        {vuln.cvss_score && (
+                          <span className="flex items-center gap-1">
+                            <Shield className="h-3 w-3" />
+                            CVSS {vuln.cvss_score}
                           </span>
+                        )}
 
-                          {vuln.severity && vuln.severity !== 'UNKNOWN' && (
-                            <Badge className={getSeverityBadgeColor(vuln.severity)}>
-                              {vuln.severity}
-                            </Badge>
-                          )}
+                        {vuln.published_at && (
+                          <span className="flex items-center gap-1 ml-auto text-gray-500 dark:text-gray-500">
+                            <Calendar className="h-3 w-3" />
+                            {formatDate(vuln.published_at)}
+                          </span>
+                        )}
 
-                          {vuln.exploited_in_the_wild && (
-                            <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-300 dark:border-red-700">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              Exploited
-                            </Badge>
-                          )}
-
-                          {vuln.cvss_score && (
-                            <span className="flex items-center gap-1">
-                              <Shield className="h-3 w-3" />
-                              {vuln.cvss_score}
-                            </span>
-                          )}
-
-                          {vuln.published_at && (
-                            <span className="flex items-center gap-1 ml-auto text-gray-500 dark:text-gray-500">
-                              <Calendar className="h-3 w-3" />
-                              {formatDate(vuln.published_at)}
-                            </span>
-                          )}
-
-                          {!vuln.published_at && vuln.modified_at && (
-                            <span className="flex items-center gap-1 ml-auto text-gray-500 dark:text-gray-500">
-                              <Clock className="h-3 w-3" />
-                              {formatDate(vuln.modified_at)}
-                            </span>
-                          )}
-                        </div>
+                        {!vuln.published_at && vuln.modified_at && (
+                          <span className="flex items-center gap-1 ml-auto text-gray-500 dark:text-gray-500">
+                            <Clock className="h-3 w-3" />
+                            {formatDate(vuln.modified_at)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </CardContent>

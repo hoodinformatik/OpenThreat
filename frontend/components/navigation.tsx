@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, BarChart3, Info, Menu, X, Newspaper, ScanSearch, TrendingUp } from "lucide-react";
+import { Shield, BarChart3, Info, Menu, X, Newspaper, ScanSearch, TrendingUp, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UserMenu from "./user-menu";
 import { NotificationCenter } from "./NotificationCenter";
@@ -16,6 +16,7 @@ export function Navigation() {
   const links = [
     { href: "/", label: "Dashboard", icon: BarChart3 },
     { href: "/scan", label: "Scan", icon: ScanSearch },
+    { href: "/my-stack", label: "My Stack", icon: Layers },
     { href: "/news", label: "News", icon: Newspaper },
     { href: "/site-stats", label: "Site Stats", icon: TrendingUp },
     { href: "/about", label: "About", icon: Info },

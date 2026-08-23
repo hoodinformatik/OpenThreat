@@ -1,8 +1,23 @@
 # Tech Stack Tracking & CVE Alerts — Design Doc
 
-Status: **Proposed** (not implemented). This document specs turning the
-existing one-shot "Scan" feature into a persistently tracked tech stack that
-notifies users when a new CVE affects something they use.
+Status: **Phase 1 shipped, differently than originally specced below.**
+This doc originally assumed account-based server-side tracking with
+in-app/email notifications. The site doesn't offer login/registration right
+now, so Phase 1 instead shipped as a **localStorage-based** tracker:
+- Stack definitions (name + package list) live only in the browser
+  (`frontend/lib/stacks-storage.ts`), with export/import as a JSON file
+  for backup/portability — no server-side persistence at all.
+- `POST /api/v1/techstack/match` (`backend/api/techstack.py`,
+  `TechStackService.match_packages_stateless()`) checks a package list
+  against current CVEs and returns matches without saving anything.
+- "New since last check" is computed client-side by comparing each match's
+  `published_at` against the stack's locally-stored `lastCheckedAt` — no
+  push/email infrastructure involved.
+- UI: `frontend/app/my-stack/page.tsx`, linked from the main nav.
+
+The account-based version below remains a reasonable **Phase 2/3** if/when
+logins return — real push/email delivery needs a real account to send to.
+Keeping the original spec for reference.
 
 ## Why
 

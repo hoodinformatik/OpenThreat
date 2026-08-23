@@ -659,6 +659,87 @@ class TechStackService:
 
         return matches
 
+    def match_packages_stateless(
+        self, db: Session, packages: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Match a package list against known CVEs without persisting anything.
+
+        Groups packages by ecosystem (match_packages_to_cves takes a single
+        ecosystem per call) and merges the results into the same shape
+        get_tech_stack_results() produces, so the API layer can format both
+        with shared logic.
+
+        Args:
+            db: Database session
+            packages: List of packages with name, version, ecosystem
+
+        Returns:
+            Dict with package_count, vulnerable_count, critical_count,
+            high_count, packages (grouped matches), all_packages (input list)
+        """
+        packages_by_ecosystem: Dict[str, List[Dict[str, Any]]] = {}
+        for pkg in packages:
+            ecosystem = pkg.get("ecosystem", "npm")
+            packages_by_ecosystem.setdefault(ecosystem, []).append(pkg)
+
+        all_matches = []
+        for ecosystem, ecosystem_packages in packages_by_ecosystem.items():
+            all_matches.extend(
+                self.match_packages_to_cves(db, ecosystem_packages, ecosystem)
+            )
+
+        packages_with_vulns: Dict[str, Dict[str, Any]] = {}
+        vulnerable_package_names = set()
+        critical_count = 0
+        high_count = 0
+
+        for match in all_matches:
+            vuln = match["vulnerability"]
+            pkg_key = match["package_name"]
+
+            if pkg_key not in packages_with_vulns:
+                packages_with_vulns[pkg_key] = {
+                    "name": match["package_name"],
+                    "version": match["package_version"],
+                    "ecosystem": match["ecosystem"],
+                    "vulnerabilities": [],
+                }
+
+            packages_with_vulns[pkg_key]["vulnerabilities"].append(
+                {
+                    "cve_id": vuln.cve_id,
+                    "severity": vuln.severity,
+                    "cvss_score": vuln.cvss_score,
+                    "title": vuln.simple_title or vuln.title,
+                    "description": (
+                        vuln.simple_description
+                        or (vuln.description[:200] if vuln.description else None)
+                    ),
+                    "match_type": match["match_type"],
+                    "match_confidence": match["match_confidence"],
+                    "exploited": vuln.exploited_in_the_wild,
+                    "published_at": (
+                        vuln.published_at.isoformat() if vuln.published_at else None
+                    ),
+                }
+            )
+
+            vulnerable_package_names.add(pkg_key)
+            if vuln.severity == "CRITICAL":
+                critical_count += 1
+            elif vuln.severity == "HIGH":
+                high_count += 1
+
+        return {
+            "package_count": len(packages),
+            "vulnerable_count": len(vulnerable_package_names),
+            "critical_count": critical_count,
+            "high_count": high_count,
+            "packages": list(packages_with_vulns.values()),
+            "all_packages": packages,
+        }
+
     def _get_cpe_mapping(
         self, db: Session, ecosystem: str, package_name: str
     ) -> Tuple[Optional[str], Optional[str]]:

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import { parseDependencyFile } from "@/lib/techstack-parsers";
 import {
   Upload,
   FileCode,
@@ -138,147 +139,7 @@ export default function ScanPage() {
     try {
       // Parse the file client-side to avoid Cloudflare blocking file uploads
       const fileContent = await file.text();
-      let packages: Array<{ name: string; version: string | null; ecosystem: string; dev: boolean }> = [];
-      let ecosystem = "npm";
-
-      // Parse based on file type (check extension and common names)
-      const fileName = file.name.toLowerCase();
-      const isPackageJson = fileName === "package.json" || fileName.endsWith("package.json");
-      const isPackageLock = fileName === "package-lock.json" || fileName.endsWith("package-lock.json");
-      const isRequirementsTxt = fileName === "requirements.txt" || fileName.endsWith(".txt") || fileName.includes("requirements");
-      const isGemfile = fileName === "gemfile" || fileName === "gemfile.lock" || fileName.startsWith("gemfile");
-      const isComposerJson = fileName === "composer.json" || fileName.endsWith("composer.json");
-      const isGoMod = fileName === "go.mod" || fileName.endsWith(".mod");
-      const isCargoToml = fileName === "cargo.toml" || fileName.endsWith("cargo.toml");
-      const isPomXml = fileName === "pom.xml" || fileName.endsWith(".xml");
-
-      if (isPackageJson || isPackageLock) {
-        try {
-          const json = JSON.parse(fileContent);
-          ecosystem = "npm";
-
-          // Parse dependencies
-          if (json.dependencies) {
-            for (const [name, version] of Object.entries(json.dependencies)) {
-              packages.push({
-                name,
-                version: typeof version === "string" ? version.replace(/^[\^~>=<]/, "") : null,
-                ecosystem: "npm",
-                dev: false,
-              });
-            }
-          }
-
-          // Parse devDependencies
-          if (json.devDependencies) {
-            for (const [name, version] of Object.entries(json.devDependencies)) {
-              packages.push({
-                name,
-                version: typeof version === "string" ? version.replace(/^[\^~>=<]/, "") : null,
-                ecosystem: "npm",
-                dev: true,
-              });
-            }
-          }
-        } catch {
-          throw new Error("Invalid package.json format");
-        }
-      } else if (isRequirementsTxt) {
-        ecosystem = "pypi";
-        const lines = fileContent.split("\n");
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          // Skip comments, empty lines, and flags
-          if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("-")) continue;
-
-          // Parse package==version, package>=version, etc.
-          const match = trimmed.match(/^([a-zA-Z0-9_-]+)(?:\[.*?\])?(?:([=<>!~]+)(.+))?$/);
-          if (match) {
-            packages.push({
-              name: match[1],
-              version: match[3] || null,
-              ecosystem: "pypi",
-              dev: false,
-            });
-          }
-        }
-      } else if (isGemfile) {
-        ecosystem = "rubygems";
-        // Simple Gemfile parsing
-        const gemRegex = /gem\s+['"]([^'"]+)['"](?:,\s*['"]([^'"]+)['"])?/g;
-        let match;
-        while ((match = gemRegex.exec(fileContent)) !== null) {
-          packages.push({
-            name: match[1],
-            version: match[2] || null,
-            ecosystem: "rubygems",
-            dev: false,
-          });
-        }
-      } else if (isComposerJson) {
-        ecosystem = "packagist";
-        try {
-          const json = JSON.parse(fileContent);
-          const allDeps = { ...json.require, ...json["require-dev"] };
-          for (const [name, version] of Object.entries(allDeps)) {
-            if (name === "php") continue; // Skip PHP version requirement
-            packages.push({
-              name,
-              version: typeof version === "string" ? version : null,
-              ecosystem: "packagist",
-              dev: false,
-            });
-          }
-        } catch {
-          throw new Error("Invalid composer.json format");
-        }
-      } else if (isGoMod) {
-        ecosystem = "go";
-        const requireRegex = /require\s+([^\s]+)\s+v?([^\s]+)/g;
-        let match;
-        while ((match = requireRegex.exec(fileContent)) !== null) {
-          packages.push({
-            name: match[1],
-            version: match[2],
-            ecosystem: "go",
-            dev: false,
-          });
-        }
-      } else if (isCargoToml) {
-        ecosystem = "cargo";
-        // Simple Cargo.toml parsing
-        const depRegex = /^([a-zA-Z0-9_-]+)\s*=\s*["']([^"']+)["']/gm;
-        let match;
-        while ((match = depRegex.exec(fileContent)) !== null) {
-          packages.push({
-            name: match[1],
-            version: match[2],
-            ecosystem: "cargo",
-            dev: false,
-          });
-        }
-      } else if (isPomXml) {
-        ecosystem = "maven";
-        // Simple pom.xml parsing
-        const depRegex = /<artifactId>([^<]+)<\/artifactId>[\s\S]*?<version>([^<]+)<\/version>/g;
-        let match;
-        while ((match = depRegex.exec(fileContent)) !== null) {
-          packages.push({
-            name: match[1],
-            version: match[2],
-            ecosystem: "maven",
-            dev: false,
-          });
-        }
-      } else {
-        throw new Error(`Unsupported file format: ${file.name}`);
-      }
-
-      if (packages.length === 0) {
-        throw new Error("No packages found in the file. Please check the file format.");
-      }
-
+      const packages = parseDependencyFile(file.name, fileContent);
       const packageNames = packages.map((p) => p.name);
 
       // Use POST endpoint with JSON body for robust data transfer

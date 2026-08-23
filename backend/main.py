@@ -94,7 +94,6 @@ from .api import (
     bookmarks,
     comments,
     csrf,
-    cve_votes,
     feeds,
     health,
     news,
@@ -103,7 +102,6 @@ from .api import (
     stats,
     tasks,
     techstack,
-    trending,
     vulnerabilities,
     waitlist,
 )
@@ -124,8 +122,11 @@ app.include_router(feeds.router, prefix="/api/v1", tags=["Feeds"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["Tasks"])
 app.include_router(llm.router, prefix="/api/v1", tags=["LLM Processing"])
 app.include_router(data_sources.router, prefix="/api/v1", tags=["Data Sources"])
-app.include_router(cve_votes.router, prefix="/api/v1", tags=["CVE Voting"])
-app.include_router(trending.router, prefix="/api/v1", tags=["Trending"])
+# CVE voting and trending are disconnected - both require login, which the
+# site doesn't offer right now. Routes are kept but unregistered rather than
+# deleted so they're easy to bring back if accounts return.
+# app.include_router(cve_votes.router, prefix="/api/v1", tags=["CVE Voting"])
+# app.include_router(trending.router, prefix="/api/v1", tags=["Trending"])
 app.include_router(news.router, prefix="/api/v1", tags=["News"])
 app.include_router(techstack.router, prefix="/api/v1", tags=["Tech Stack"])
 app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])

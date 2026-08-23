@@ -3,29 +3,23 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Comment } from "@/types/comment";
-import { CommentForm } from "./CommentForm";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronUp, ChevronDown, MessageSquare, Edit2, Trash2, MoreVertical } from "lucide-react";
+import { MessageSquare, Edit2, Trash2, MoreVertical } from "lucide-react";
 
 interface CommentItemProps {
   comment: Comment;
-  cveId: string;
   onCommentUpdated: (comment: Comment) => void;
   onCommentDeleted: (commentId: number) => void;
-  onVote: (commentId: number, voteType: 1 | -1) => void;
   depth?: number;
 }
 
 export function CommentItem({
   comment,
-  cveId,
   onCommentUpdated,
   onCommentDeleted,
-  onVote,
   depth = 0,
 }: CommentItemProps) {
-  const { user, token, isAuthenticated } = useAuth();
-  const [showReplyForm, setShowReplyForm] = useState(false);
+  const { user, token } = useAuth();
   const [showReplies, setShowReplies] = useState(false);
   const [replies, setReplies] = useState<Comment[]>([]);
   const [loadingReplies, setLoadingReplies] = useState(false);
@@ -37,8 +31,6 @@ export function CommentItem({
   const isAdmin = user?.role === "admin";
   const canEdit = isAuthor;
   const canDelete = isAuthor || isAdmin;
-
-  const score = comment.upvotes - comment.downvotes;
 
   const loadReplies = async () => {
     if (replies.length > 0) {
@@ -123,12 +115,6 @@ export function CommentItem({
       console.error("Delete error:", err);
       alert("Failed to delete comment. Please try again.");
     }
-  };
-
-  const handleReplyAdded = (newReply: Comment) => {
-    setReplies([...replies, newReply]);
-    setShowReplyForm(false);
-    setShowReplies(true);
   };
 
   const handleReplyUpdated = (updatedReply: Comment) => {
@@ -270,48 +256,6 @@ export function CommentItem({
 
         {/* Actions */}
         <div className="flex items-center gap-4 text-sm">
-          {/* Voting */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => onVote(comment.id, 1)}
-              disabled={!isAuthenticated}
-              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                comment.user_vote === 1 ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"
-              } ${!isAuthenticated ? "cursor-not-allowed opacity-50" : ""}`}
-              title={isAuthenticated ? "Upvote" : "Sign in to vote"}
-            >
-              <ChevronUp className="w-5 h-5" />
-            </button>
-            <span
-              className={`font-semibold min-w-[2rem] text-center ${
-                score > 0 ? "text-blue-600 dark:text-blue-400" : score < 0 ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"
-              }`}
-            >
-              {score}
-            </span>
-            <button
-              onClick={() => onVote(comment.id, -1)}
-              disabled={!isAuthenticated}
-              className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                comment.user_vote === -1 ? "text-red-600 dark:text-red-400" : "text-gray-500 dark:text-gray-400"
-              } ${!isAuthenticated ? "cursor-not-allowed opacity-50" : ""}`}
-              title={isAuthenticated ? "Downvote" : "Sign in to vote"}
-            >
-              <ChevronDown className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Reply button */}
-          {isAuthenticated && depth < 3 && (
-            <button
-              onClick={() => setShowReplyForm(!showReplyForm)}
-              className="flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Reply
-            </button>
-          )}
-
           {/* Show replies button */}
           {comment.reply_count > 0 && (
             <button
@@ -324,19 +268,6 @@ export function CommentItem({
             </button>
           )}
         </div>
-
-        {/* Reply form */}
-        {showReplyForm && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <CommentForm
-              cveId={cveId}
-              parentId={comment.id}
-              onCommentAdded={handleReplyAdded}
-              onCancel={() => setShowReplyForm(false)}
-              placeholder="Write a reply..."
-            />
-          </div>
-        )}
       </div>
 
       {/* Nested replies */}
@@ -346,10 +277,8 @@ export function CommentItem({
             <CommentItem
               key={reply.id}
               comment={reply}
-              cveId={cveId}
               onCommentUpdated={handleReplyUpdated}
               onCommentDeleted={handleReplyDeleted}
-              onVote={onVote}
               depth={depth + 1}
             />
           ))}

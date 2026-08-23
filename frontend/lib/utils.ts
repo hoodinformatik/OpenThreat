@@ -44,3 +44,19 @@ export function getSeverityBadgeColor(severity: string | null | undefined): stri
       return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-300 dark:border-gray-600";
   }
 }
+
+/** Left-border accent color for severity, used on CVE list/card rows. */
+export function getSeverityAccentColor(severity: string | null | undefined): string {
+  switch (severity?.toUpperCase()) {
+    case "CRITICAL":
+      return "border-l-red-500";
+    case "HIGH":
+      return "border-l-orange-500";
+    case "MEDIUM":
+      return "border-l-yellow-500";
+    case "LOW":
+      return "border-l-blue-500";
+    default:
+      return "border-l-gray-300 dark:border-l-gray-600";
+  }
+}

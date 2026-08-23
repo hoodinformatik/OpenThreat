@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
-import { CommentForm } from "./CommentForm";
 import { CommentList } from "./CommentList";
 import { Comment } from "@/types/comment";
 
@@ -11,13 +9,11 @@ interface CommentSectionProps {
 }
 
 export function CommentSection({ cveId }: CommentSectionProps) {
-  const { user, token, isAuthenticated } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [sortBy, setSortBy] = useState<"created_at" | "upvotes">("created_at");
 
   const pageSize = 20;
 
@@ -27,12 +23,7 @@ export function CommentSection({ cveId }: CommentSectionProps) {
       setError(null);
 
       const response = await fetch(
-        `/api/v1/vulnerabilities/${cveId}/comments?page=${page}&page_size=${pageSize}&sort_by=${sortBy}&order=desc`,
-        {
-          headers: token
-            ? { Authorization: `Bearer ${token}` }
-            : {},
-        }
+        `/api/v1/vulnerabilities/${cveId}/comments?page=${page}&page_size=${pageSize}&sort_by=created_at&order=desc`
       );
 
       if (!response.ok) {
@@ -51,12 +42,7 @@ export function CommentSection({ cveId }: CommentSectionProps) {
 
   useEffect(() => {
     fetchComments();
-  }, [cveId, page, sortBy]);
-
-  const handleCommentAdded = (newComment: Comment) => {
-    setComments([newComment, ...comments]);
-    setTotal(total + 1);
-  };
+  }, [cveId, page]);
 
   const handleCommentUpdated = (updatedComment: Comment) => {
     setComments(
@@ -69,67 +55,11 @@ export function CommentSection({ cveId }: CommentSectionProps) {
     setTotal(total - 1);
   };
 
-  const handleVote = async (commentId: number, voteType: 1 | -1) => {
-    if (!isAuthenticated || !token) {
-      alert("Please sign in to vote");
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/v1/comments/${commentId}/vote`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ vote_type: voteType }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to vote");
-      }
-
-      const updatedComment = await response.json();
-      handleCommentUpdated(updatedComment);
-    } catch (err) {
-      console.error("Vote error:", err);
-      alert("Failed to vote. Please try again.");
-    }
-  };
-
   return (
     <div className="mt-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">
-          Comments ({total})
-        </h2>
-
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "created_at" | "upvotes")}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="created_at">Newest First</option>
-          <option value="upvotes">Most Upvoted</option>
-        </select>
-      </div>
-
-      {isAuthenticated ? (
-        <CommentForm
-          cveId={cveId}
-          onCommentAdded={handleCommentAdded}
-        />
-      ) : (
-        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
-          <p className="text-gray-600 dark:text-gray-400">
-            Please{" "}
-            <a href="/auth" className="text-blue-600 dark:text-blue-400 hover:underline">
-              sign in
-            </a>{" "}
-            to comment
-          </p>
-        </div>
-      )}
+      <h2 className="text-2xl font-bold">
+        Comments ({total})
+      </h2>
 
       {loading && page === 1 ? (
         <div className="text-center py-8">
@@ -148,16 +78,14 @@ export function CommentSection({ cveId }: CommentSectionProps) {
         </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No comments yet. Be the first to comment!
+          No comments yet.
         </div>
       ) : (
         <>
           <CommentList
             comments={comments}
-            cveId={cveId}
             onCommentUpdated={handleCommentUpdated}
             onCommentDeleted={handleCommentDeleted}
-            onVote={handleVote}
           />
 
           {total > pageSize && (

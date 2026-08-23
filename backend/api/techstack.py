@@ -64,6 +64,7 @@ class VulnerabilityInfo(BaseModel):
     match_type: str
     match_confidence: float
     exploited: bool
+    published_at: Optional[str] = None
 
 
 class PackageWithVulns(BaseModel):
@@ -114,6 +115,25 @@ class SupportedFormatsResponse(BaseModel):
     """List of supported file formats."""
 
     formats: List[dict]
+
+
+class TechStackMatchRequest(BaseModel):
+    """Request to check packages against known CVEs without persisting anything."""
+
+    packages: List[PackageInfo]
+
+
+class StatelessMatchResponse(BaseModel):
+    """CVE match results for a package list that isn't stored server-side."""
+
+    package_count: int
+    vulnerable_count: int
+    safe_count: int
+    critical_count: int
+    high_count: int
+    medium_count: int
+    low_count: int
+    packages: List[PackageWithVulns]
 
 
 # =============================================================================
@@ -198,6 +218,26 @@ async def get_supported_formats():
     ]
 
     return {"formats": formats}
+
+
+@router.post("/techstack/match", response_model=StatelessMatchResponse)
+async def match_tech_stack(
+    request: TechStackMatchRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Check a package list against known CVEs without persisting anything.
+
+    Unlike the /scan endpoints, this does not create a TechStack or
+    TechStackMatch database row - nothing about the caller's stack is
+    stored server-side. Intended for a client that keeps its own tech
+    stack definition (e.g. in browser localStorage) and just wants a
+    fresh CVE check on demand.
+    """
+    service = get_techstack_service()
+    packages = [p.model_dump() for p in request.packages]
+    results = service.match_packages_stateless(db, packages)
+    return _format_stateless_response(results)
 
 
 @router.post("/techstack/scan", response_model=TechStackResponse)
@@ -620,10 +660,14 @@ async def delete_tech_stack(
 # =============================================================================
 
 
-def _format_tech_stack_response(
-    results: dict, session_id: Optional[str]
-) -> TechStackResponse:
-    """Format tech stack results for API response including all packages."""
+def _build_package_results(results: dict):
+    """
+    Shared package-list building logic used by both the persisting
+    TechStackResponse formatter and the stateless match formatter.
+
+    Returns (all_packages_list, medium_count, low_count, package_count,
+    vulnerable_count, safe_count).
+    """
     # Build a map of vulnerable packages with their vulnerabilities
     vulnerable_packages = {}
     medium_count = 0
@@ -642,6 +686,7 @@ def _format_tech_stack_response(
                     match_type=v.get("match_type", "unknown"),
                     match_confidence=v.get("match_confidence", 0.5),
                     exploited=v.get("exploited", False),
+                    published_at=v.get("published_at"),
                 )
             )
             # Count medium and low severity
@@ -708,6 +753,29 @@ def _format_tech_stack_response(
     vulnerable_count = results.get("vulnerable_count", 0)
     safe_count = package_count - vulnerable_count
 
+    return (
+        all_packages_list,
+        medium_count,
+        low_count,
+        package_count,
+        vulnerable_count,
+        safe_count,
+    )
+
+
+def _format_tech_stack_response(
+    results: dict, session_id: Optional[str]
+) -> TechStackResponse:
+    """Format tech stack results for API response including all packages."""
+    (
+        all_packages_list,
+        medium_count,
+        low_count,
+        package_count,
+        vulnerable_count,
+        safe_count,
+    ) = _build_package_results(results)
+
     return TechStackResponse(
         id=results["id"],
         name=results["name"],
@@ -730,4 +798,27 @@ def _format_tech_stack_response(
         ),
         packages=all_packages_list,
         session_id=session_id,
+    )
+
+
+def _format_stateless_response(results: dict) -> StatelessMatchResponse:
+    """Format stateless match results (no id/timestamps - nothing persisted)."""
+    (
+        all_packages_list,
+        medium_count,
+        low_count,
+        package_count,
+        vulnerable_count,
+        safe_count,
+    ) = _build_package_results(results)
+
+    return StatelessMatchResponse(
+        package_count=package_count,
+        vulnerable_count=vulnerable_count,
+        safe_count=safe_count,
+        critical_count=results.get("critical_count", 0),
+        high_count=results.get("high_count", 0),
+        medium_count=medium_count,
+        low_count=low_count,
+        packages=all_packages_list,
     )
