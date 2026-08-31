@@ -28,7 +28,7 @@ itsdangerous==2.2.0
 # Authentication
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.5.0
-python-multipart==0.0.18
+python-multipart==0.0.22
 bcrypt==4.1.2
 email-validator==2.1.0
 
